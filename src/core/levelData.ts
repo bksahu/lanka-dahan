@@ -20,11 +20,12 @@ const TILE_CHAR_MAP: Record<string, TileMaterial> = {
   'S': 'SACRED',
 };
 
-// 160 columns x 14 rows
-// Zone 1 (0-28): Palace Parapet Entry
-// Zone 2 (29-60): Banner Towers
-// Zone 3 (61-95): Archer Ridge
-// Zone 4 (96-122): Vibhishana's House & Ashoka Vatika
+// 160 columns x 14 rows — Clean horizontal Svarna Lanka terraces, 1-tile golden-eaved roofs,
+// hanging banner bridges, and moonlit marble/Ashoka sanctuary (matching ref_gameplay.png).
+// Zone 1 (0-28):   Palace Parapet Entry
+// Zone 2 (29-60):  Banner Towers
+// Zone 3 (61-95):  Archer Ridge
+// Zone 4 (96-122): Vibhishana's House & Ashoka Vatika (SACRED)
 // Zone 5 (123-159): Royal Armory Gauntlet & Sea-Cliff Exit
 
 const LEVEL_STRINGS: string[] = [
@@ -32,18 +33,18 @@ const LEVEL_STRINGS: string[] = [
   //0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
   '................................................................................................................................................................',
   '................................................................................................................................................................',
-  '.....................................................................................##.........SS..SS...............................................................', 
-  '....................#####..............##..BB..##.........##...............##.......####.......SSSSSSSS........##..BB..##.........................................', 
-  '.................###WWWWW###........####..BB..####.....####.............####.....##WWWW##...SS......SS.....####..BB..####.....####...............................', 
-  '..............###WWWWWWWWWWW###..###WWWW......WWWW###.#WWWW#.........#WWWW#..##WWWWWWWW##.S........S...##WWWW......WWWW##.##WWWW##.........##.................', 
-  '............##WWWWWWWWWWWWWWWW####WWWWWWWWWWWWWWWWWW##WWWWWWW##.....#WWWWWW###WWWWWWWWWWW#.S........S.##WWWWWWWWWWWWWWWW##WWWWWWWW###...####..BB..............', 
-  '..........##WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW##.##WWWWWWWWWWWWWWWWWWWWWW#S........S#WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW###WWWW..BB..............', 
-  '........##WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW##WWWWWWWWWWWWWWWWWWWWWWWWSSSSSSSSSSSWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW......BB..........', 
-  '......##WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW########WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW......BB..........', 
-  '....##WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW..........WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW......BB......', 
-  '..####WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW..........WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW....BB..##', 
-  '####################################################################################################################################WWWWWWWWWWWWWWWWWW......##', 
-  '################################################################################################################################################################', 
+  '................................................................................................................................................................',
+  '................................................................................................................................................................',
+  '.........................................BBBBBB.........................BBBBBB...................................................BBBBBB.........................',
+  '...................WWWWWW..............##WWWWWW##.....WWWWWW..........##WWWWWW##....WWWWWW.....................................##WWWWWW##.....WWWWWW............',
+  '...................B....B..............B........B.....B....B..........B........B....B....B...........S.........S...............B........B.....B....B............',
+  '...................B....B.....WWWWWW...B........B..###WWWWWW###.......B........B..##WWWWWW##.......SSSSS.....SSSSS.......WWWWWWB........B..###WWWWWW###.........',
+  '...................B....B.....B....B.............###..........#.......#........#..#........#.........S.........S.........B....B#........#..#..........#.........',
+  '...................#....#.....B....B...#........#..#..........#WWWWWWW#........#..#........#WWWWWW...S.........S...WWWWWWB....B#........#..#..........#WWWWWW...',
+  '.........WWWWWWWWWW######.....#....#####.........###...........########........####........#######SSSSSSSSSSSSSSSSS######......#########..############......###.',
+  '#########..........######.....#...................................................................SSSSSSSSSSSSSSSSS..........................................###.',
+  '#########..........###############################################################################SSSSSSSSSSSSSSSSS##########################################.###.',
+  '#########..........###############################################################################SSSSSSSSSSSSSSSSS##########################################.###.',
 ];
 
 function parseLevelGrid(): TileMaterial[][] {
@@ -61,23 +62,23 @@ function parseLevelGrid(): TileMaterial[][] {
 }
 
 const ENEMY_SPAWNS: EnemySpawn[] = [
-  // Zone 2: First Guard patrol
-  { type: 'GUARD', tx: 38, ty: 5, patrolLeftTx: 34, patrolRightTx: 44 },
-  { type: 'GUARD', tx: 50, ty: 6, patrolLeftTx: 46, patrolRightTx: 56 },
+  // Zone 2: Guards patrolling terraces & towers (feet at ty + 1)
+  { type: 'GUARD', tx: 34, ty: 11, patrolLeftTx: 31, patrolRightTx: 38 },
+  { type: 'GUARD', tx: 54, ty: 6, patrolLeftTx: 51, patrolRightTx: 59 },
 
-  // Zone 3: Archers
-  { type: 'ARCHER', tx: 68, ty: 5, patrolLeftTx: 66, patrolRightTx: 72 },
-  { type: 'ARCHER', tx: 78, ty: 4, patrolLeftTx: 76, patrolRightTx: 82 },
-  { type: 'GUARD', tx: 85, ty: 5, patrolLeftTx: 82, patrolRightTx: 90 },
+  // Zone 3: Archers & Guard on ridge
+  { type: 'ARCHER', tx: 74, ty: 4, patrolLeftTx: 72, patrolRightTx: 77 },
+  { type: 'GUARD', tx: 66, ty: 11, patrolLeftTx: 62, patrolRightTx: 70 },
+  { type: 'ARCHER', tx: 86, ty: 6, patrolLeftTx: 84, patrolRightTx: 89 },
 
-  // Zone 4: Guards near sacred zone
-  { type: 'GUARD', tx: 95, ty: 3, patrolLeftTx: 92, patrolRightTx: 98 },
+  // Zone 4: Guard near entrance to Vibhishana's House (standing on row 9 awning)
+  { type: 'GUARD', tx: 94, ty: 8, patrolLeftTx: 92, patrolRightTx: 96 },
 
   // Zone 5: Gauntlet
-  { type: 'GUARD', tx: 130, ty: 6, patrolLeftTx: 126, patrolRightTx: 136 },
-  { type: 'ARCHER', tx: 138, ty: 5, patrolLeftTx: 136, patrolRightTx: 142 },
-  { type: 'GUARD', tx: 145, ty: 7, patrolLeftTx: 142, patrolRightTx: 150 },
-  { type: 'ARCHER', tx: 150, ty: 6, patrolLeftTx: 148, patrolRightTx: 154 },
+  { type: 'GUARD', tx: 132, ty: 4, patrolLeftTx: 129, patrolRightTx: 136 },
+  { type: 'ARCHER', tx: 147, ty: 6, patrolLeftTx: 144, patrolRightTx: 151 },
+  { type: 'GUARD', tx: 143, ty: 9, patrolLeftTx: 140, patrolRightTx: 148 },
+  { type: 'ARCHER', tx: 157, ty: 9, patrolLeftTx: 156, patrolRightTx: 158 },
 ];
 
 export function getLevel1(): LevelDef {
@@ -85,8 +86,8 @@ export function getLevel1(): LevelDef {
     cols: LEVEL_COLS,
     rows: LEVEL_ROWS,
     grid: parseLevelGrid(),
-    playerStartTx: 4,
-    playerStartTy: 10,
+    playerStartTx: 3,
+    playerStartTy: 11,
     exitTxMin: 156,
     exitTxMax: 159,
     enemies: ENEMY_SPAWNS,

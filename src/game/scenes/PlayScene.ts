@@ -121,9 +121,9 @@ export class PlayScene extends Phaser.Scene {
   private buildDecorativeLandmarks(): void {
     const grid = this.levelDef.grid;
 
-    // ── Depth 25: Golden Shikhara Temples & Curved Golden Roof Domes behind terraces ──
+    // ── Depth 25: Golden Shikhara Temples & Curved Golden Roof Domes rising behind terraces ──
     const shikharas: [number, number][] = [
-      [10, 10], [21, 3], [43, 4], [55, 6], [71, 5], [89, 5], [133, 6], [149, 7],
+      [13, 10], [22, 10], [45, 10], [56, 12], [75, 9], [90, 10], [134, 10], [150, 12],
     ];
     for (const [tx, ty] of shikharas) {
       this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'props_lanka', 'props_lanka 8.aseprite')
@@ -132,7 +132,7 @@ export class PlayScene extends Phaser.Scene {
     }
 
     const roofDomes: [number, number][] = [
-      [16, 10], [31, 6], [49, 6], [64, 5], [80, 4], [126, 6], [141, 6],
+      [5, 11], [34, 10], [66, 9], [85, 10], [126, 10], [142, 10],
     ];
     for (const [tx, ty] of roofDomes) {
       this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'props_lanka', 'props_lanka 9.aseprite')
@@ -140,9 +140,39 @@ export class PlayScene extends Phaser.Scene {
         .setDepth(26);
     }
 
-    // ── Depth 30: Torana Archways, Balustrades, Pillars, Jali Windows & Sconces ──
+    // ── Depth 28: Carved supporting sandstone pillars under raised WOOD_ROOF pavilions ──
+    for (let ty = 4; ty < 11; ty++) {
+      for (let tx = 0; tx < this.levelDef.cols; tx++) {
+        if (grid[ty][tx] !== 'WOOD_ROOF') continue;
+        const leftW = tx > 0 ? grid[ty][tx - 1] : 'EMPTY';
+        const rightW = tx < this.levelDef.cols - 1 ? grid[ty][tx + 1] : 'EMPTY';
+        const isEdge = leftW !== 'WOOD_ROOF' || rightW !== 'WOOD_ROOF';
+        if (!isEdge) continue;
+
+        // Only place pillars if there is a solid STONE/SACRED floor below within rows ty+1..13
+        let floorTy = -1;
+        for (let py = ty + 1; py < this.levelDef.rows; py++) {
+          const m = grid[py][tx];
+          if (m === 'STONE' || m === 'SACRED') {
+            floorTy = py;
+            break;
+          }
+          if (m !== 'EMPTY' && m !== 'BANNER') break;
+        }
+        if (floorTy <= ty + 1) continue;
+
+        for (let py = ty + 1; py < floorTy; py++) {
+          const pCol = py === ty + 1 ? 2 : (py === floorTy - 1 ? 0 : 1);
+          this.add.image(tx * TILE_SIZE, py * TILE_SIZE, 'tileset_lanka', 4 * 16 + pCol)
+            .setOrigin(0, 0)
+            .setDepth(28);
+        }
+      }
+    }
+
+    // ── Depth 30: Torana Archways on open flat terraces & Stone Balustrade Railings ──
     const toranaPositions: [number, number][] = [
-      [2, 12], [58, 7], [123, 7],
+      [1, 11], [41, 10], [123, 10],
     ];
     for (const [tx, ty] of toranaPositions) {
       this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'props_lanka', 'props_lanka 0.aseprite')
@@ -150,25 +180,16 @@ export class PlayScene extends Phaser.Scene {
         .setDepth(30);
     }
 
-    // Balustrade railings along open STONE parapet rooftops + jali windows & sconces on walls
+    // Balustrade railings along open flat STONE terraces (at least 3 wide)
     for (let ty = 1; ty < this.levelDef.rows; ty++) {
-      for (let tx = 0; tx < this.levelDef.cols; tx++) {
+      for (let tx = 6; tx < this.levelDef.cols - 5; tx++) {
         const mat = grid[ty][tx];
         const above = grid[ty - 1][tx];
-
-        if (mat === 'STONE' && above === 'EMPTY') {
-          // Place balustrade railing on flat stone roofs (skip enemy spawn spots & entry arch)
-          if (tx > 6 && tx < 154 && tx % 2 === 0 && (tx < 96 || tx > 112)) {
+        const left = grid[ty][tx - 1];
+        const right = grid[ty][tx + 1];
+        if (mat === 'STONE' && above === 'EMPTY' && left === 'STONE' && right === 'STONE') {
+          if (tx < 96 || tx > 119) {
             this.add.image(tx * TILE_SIZE, (ty - 1) * TILE_SIZE, 'tileset_lanka', 9)
-              .setOrigin(0, 0)
-              .setDepth(30);
-          }
-        }
-
-        // Hanging marigold vines along Ashoka Vatika & palace eaves
-        if ((mat === 'STONE' || mat === 'SACRED') && ty >= 3 && ty <= 6 && ty + 1 < this.levelDef.rows && grid[ty + 1][tx] === 'EMPTY') {
-          if (tx % 7 === 0) {
-            this.add.image(tx * TILE_SIZE, (ty + 1) * TILE_SIZE, 'tileset_lanka', 4 * 16 + 8)
               .setOrigin(0, 0)
               .setDepth(30);
           }
@@ -176,9 +197,9 @@ export class PlayScene extends Phaser.Scene {
       }
     }
 
-    // Standing brass diyas along parapets
+    // Standing brass diyas along terraces
     const diyaPositions: [number, number][] = [
-      [8, 12], [29, 6], [62, 5], [91, 4], [124, 6], [154, 11],
+      [7, 11], [27, 10], [64, 12], [93, 10], [125, 10], [154, 12],
     ];
     for (const [tx, ty] of diyaPositions) {
       const diya = this.add.sprite(tx * TILE_SIZE + 8, ty * TILE_SIZE, 'props_lanka')
@@ -187,14 +208,14 @@ export class PlayScene extends Phaser.Scene {
       diya.play('props_lanka:brass_diya');
     }
 
-    // Vibhishana's White Marble Sacred Shrine (Zone 4: cols 96..110)
-    this.add.image(99 * TILE_SIZE, 8 * TILE_SIZE, 'props_lanka', 'props_lanka 1.aseprite')
+    // Vibhishana's White Marble Sacred Shrine on the marble terrace (Zone 4: cols 96..118)
+    this.add.image(105 * TILE_SIZE, 10 * TILE_SIZE, 'props_lanka', 'props_lanka 1.aseprite')
       .setOrigin(0, 1)
       .setDepth(30);
 
     // Sea-Cliff Exit Torana Arch (Zone 5, foreground framing)
     const exitX = this.levelDef.exitTxMin * TILE_SIZE - 16;
-    const exitY = 12 * TILE_SIZE;
+    const exitY = 11 * TILE_SIZE;
     this.add.image(exitX, exitY, 'props_lanka', 'props_lanka 0.aseprite')
       .setOrigin(0, 1)
       .setDepth(80);
@@ -259,13 +280,14 @@ export class PlayScene extends Phaser.Scene {
     }
 
     if (mat === 'SACRED') {
-      // Top canopy/roof vs pillars & Ashoka foliage
-      if (ty <= 3) {
+      // Top Ashoka foliage canopies vs white marble terrace & lotus shrine base
+      if (ty <= 7) {
         if (left !== 'SACRED') return 3 * 16 + 4;  // Ashoka canopy L
         if (right !== 'SACRED') return 3 * 16 + 6; // Ashoka canopy R
         return 3 * 16 + 5;                         // Ashoka canopy M
       }
-      if (above === 'EMPTY') return 3 * 16 + 0;    // marble lotus roof
+      if (ty === 8 || ty === 9) return 3 * 16 + 7; // Ashoka tree trunk
+      if (ty === 10) return 3 * 16 + 0;            // marble lotus terrace top
       if (left !== 'SACRED' || right !== 'SACRED') return 3 * 16 + 1; // marble pillar
       return (tx + ty) % 3 === 0 ? 3 * 16 + 3 : 3 * 16 + 2; // lotus crest / floral plinth
     }
@@ -280,13 +302,6 @@ export class PlayScene extends Phaser.Scene {
       for (let tx = 0; tx < this.levelDef.cols; tx++) {
         const mat = this.levelDef.grid[ty][tx];
         if (mat === 'EMPTY') {
-          // Ground palace facade walls behind/under raised WOOD_ROOF pavilions so nothing looks like floating sticks
-          const above = ty > 0 ? this.levelDef.grid[ty - 1][tx] : 'EMPTY';
-          if (above === 'WOOD_ROOF' && ty >= 5 && ty <= 11) {
-            this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'tileset_lanka', 8)
-              .setOrigin(0, 0)
-              .setDepth(28);
-          }
           rowArr.push(null);
           continue;
         }

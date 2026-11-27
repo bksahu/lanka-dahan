@@ -203,64 +203,60 @@ def build_bg_far_spires() -> None:
 
 def build_bg_mid_palace() -> None:
     """
-    Seamless 320x180 mid-ground darkened golden Svarna Lanka shikharas, curved roofs & banners.
-    Mean luminance strictly < 95 (capped at GOLD_SHADOW #8A4E1D / sparse GOLD_MID #C78028).
+    Seamless 320x180 mid-ground darkened golden Svarna Lanka shikharas & pavilions.
+    Clean architectural silhouettes matching ref_gameplay.png (no noisy waffle grid),
+    mean luminance strictly < 95.
     """
     w, h = 320, 180
     g = blank_grid(w, h, ".")
 
-    # Distant golden palace terrace & colonnade base across all 320px (period 80px)
+    # Distant palace colonnade & terracotta/amber terraces across all 320px (period 80px)
     for x in range(w):
         lx = x % 80
-        roof_y = 112 if (10 <= lx < 64) else 124
+        roof_y = 114 if (8 <= lx < 60) else 124
         for y in range(roof_y, h):
             if y == roof_y:
-                g[y][x] = "G" if lx % 3 != 0 else "g"
+                g[y][x] = "G"
             elif y < roof_y + 3:
                 g[y][x] = "g"
-            elif y < roof_y + 6:
+            elif y < roof_y + 5:
                 g[y][x] = "d"
             else:
-                # Pillared colonnade & warm recessed arches
                 px_mod = lx % 16
-                if roof_y + 10 <= y <= roof_y + 28 and 4 <= px_mod <= 11:
-                    arch_top = roof_y + 10 + abs(px_mod - 7) // 2
-                    if y >= arch_top:
-                        g[y][x] = "1" if (y > arch_top + 2 and 5 <= px_mod <= 10) else "g"
-                    else:
-                        g[y][x] = "d"
+                if roof_y + 9 <= y <= roof_y + 26 and 5 <= px_mod <= 10:
+                    arch_top = roof_y + 9 + abs(px_mod - 7) // 2
+                    g[y][x] = "1" if y >= arch_top + 2 else "g"
                 else:
-                    g[y][x] = "w" if (px_mod in (0, 15) or y % 6 == 0) else "d"
+                    g[y][x] = "w" if px_mod in (0, 15) else "d"
 
-    # Multi-tiered Kalinga / Dravidian Golden Shikharas every 80px (x=36, 116, 196, 276)
-    for tower_cx, top_y, bw in [(36, 56, 36), (116, 68, 30), (196, 50, 38), (276, 66, 32)]:
-        # Kalasha finial spire
+    # Multi-tiered Kalinga / Dravidian Golden Shikharas every 80px (clean sculpted silhouettes)
+    for tower_cx, top_y, bw in [(34, 58, 34), (114, 70, 28), (194, 52, 36), (274, 66, 30)]:
         for ky in range(top_y - 7, top_y):
             g[ky][tower_cx % w] = "G" if ky % 2 == 0 else "g"
-        # Stepped ribbed shikhara tiers
-        for y in range(top_y, 112):
+        for y in range(top_y, 114):
             dy = y - top_y
-            half = min(bw // 2, int(2 + (dy ** 0.72) * 1.35))
-            tier_notch = (dy % 6 == 0)
+            half = min(bw // 2, int(2 + (dy ** 0.72) * 1.32))
+            tier_notch = (dy % 8 == 0)
             if tier_notch and dy > 4:
                 half = max(2, half - 1)
             for dx in range(-half, half + 1):
                 px_x = (tower_cx + dx) % w
-                rib = (abs(dx) % 4 == 0)
-                if dx == -half or tier_notch:
-                    g[y][px_x] = "G" if dx <= 0 else "g"
-                elif dx == half:
-                    g[y][px_x] = "d"
-                elif rib and dx < 0:
+                if dx == -half:
+                    g[y][px_x] = "G"
+                elif tier_notch and dx < 0:
+                    g[y][px_x] = "G"
+                elif dx <= -half // 3:
                     g[y][px_x] = "g"
+                elif dx < half // 2:
+                    g[y][px_x] = "d"
                 else:
-                    g[y][px_x] = "d" if dx > 2 else "w"
+                    g[y][px_x] = "w"
 
-    # Distant muted crimson palace banners waving from poles
-    for bx, by_top in [(68, 96), (148, 102), (228, 94), (308, 100)]:
+    # Distant muted crimson palace banners waving from thin poles
+    for bx, by_top in [(66, 98), (146, 104), (226, 96), (306, 102)]:
         for y in range(by_top, by_top + 18):
             g[y][bx % w] = "g"
-        for dy in range(7):
+        for dy in range(6):
             sway = 1 if dy in (2, 3) else 0
             span = 11 - dy // 2
             for dx in range(1, span):
