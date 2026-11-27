@@ -242,14 +242,18 @@ def build_preview_verification(
         tile = tileset.crop((col * 16, row * 16, (col + 1) * 16, (row + 1) * 16))
         scene.paste(tile, (tx * 16, ty * 16), tile)
 
-    # Rooftop left stone platform (tx 0..5, ty 8..11)
+    # Left sandstone terrace platform (tx 0..5, ty 8..11) — terrace top -> scroll frieze -> dark framed undercroft
     for tx in range(6):
         paste_tile(0 if tx == 0 else (3 if tx == 5 else (1 if tx % 2 == 1 else 2)), 0, tx, 8)
-        for ty in range(9, 12):
-            paste_tile(4 if (tx + ty) % 2 == 0 else 5, 0, tx, ty)
+        paste_tile(4, 0, tx, 9)
+        for ty in range(10, 12):
+            paste_tile(6 if tx == 0 else (7 if tx == 5 else 5), 0, tx, ty)
 
-    # Burning WOOD_ROOF bridge (tx 6..10, ty 8)
+    # Burning WOOD_ROOF bridge (tx 6..10, ty 8) over palace facade bay
     for tx in range(6, 11):
+        paste_tile(8, 0, tx, 9)
+        paste_tile(8, 0, tx, 10)
+        paste_tile(8, 0, tx, 11)
         pos = 0 if tx == 6 else (2 if tx == 10 else 1)
         state = 6 if tx <= 8 else 3  # burning + igniting
         paste_tile(state + pos, 1, tx, 8)
@@ -267,7 +271,7 @@ def build_preview_verification(
     paste_tile(0, 2, 4, 6)
     paste_tile(1, 2, 5, 6)
 
-    # Torana arch & Sacred Shrine & Brass Diya
+    # Torana arch & Sacred Shrine & Brass Diya & Shikharas
     def paste_frame(img: Image.Image, data: dict, fkey: str, dx: int, dy: int) -> None:
         r = data["frames"][fkey]["frame"]
         crop = img.crop((r["x"], r["y"], r["x"] + r["w"], r["y"] + r["h"]))
@@ -291,11 +295,12 @@ def build_preview_verification(
     paste_frame(fx_img, fx_data, "fx_fire 0.aseprite", 96, 118)
     paste_frame(fx_img, fx_data, "fx_fire 1.aseprite", 112, 118)
 
-    # Right stone tower
+    # Right terrace tower (tx 15..19, ty 8..11)
     for tx in range(15, 20):
-        paste_tile(0 if tx == 15 else (3 if tx == 19 else 1), 0, tx, 8)
-        for ty in range(9, 12):
-            paste_tile(4 if (tx + ty) % 2 == 0 else 5, 0, tx, ty)
+        paste_tile(0 if tx == 15 else (3 if tx == 19 else (1 if tx % 2 == 1 else 2)), 0, tx, 8)
+        paste_tile(4, 0, tx, 9)
+        for ty in range(10, 12):
+            paste_tile(6 if tx == 15 else (7 if tx == 19 else 5), 0, tx, ty)
 
     PREVIEW_OUT.parent.mkdir(parents=True, exist_ok=True)
     upscaled = scene.resize((960, 540), Image.Resampling.NEAREST)

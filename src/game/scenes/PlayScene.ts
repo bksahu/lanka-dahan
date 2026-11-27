@@ -165,19 +165,6 @@ export class PlayScene extends Phaser.Scene {
           }
         }
 
-        // Jali lattice windows & wall sconces embedded in tall stone towers
-        if (mat === 'STONE' && ty >= 6 && ty <= 11 && above === 'STONE') {
-          if (tx % 9 === 0 && ty % 3 === 0) {
-            this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'tileset_lanka', 4 * 16 + 7)
-              .setOrigin(0, 0)
-              .setDepth(41);
-          } else if (tx % 11 === 0 && ty === 8) {
-            const sconce = this.add.sprite(tx * TILE_SIZE + 8, ty * TILE_SIZE + 8, 'props_lanka')
-              .setDepth(41);
-            sconce.play('props_lanka:wall_sconce');
-          }
-        }
-
         // Hanging marigold vines along Ashoka Vatika & palace eaves
         if ((mat === 'STONE' || mat === 'SACRED') && ty >= 3 && ty <= 6 && ty + 1 < this.levelDef.rows && grid[ty + 1][tx] === 'EMPTY') {
           if (tx % 7 === 0) {
@@ -205,14 +192,6 @@ export class PlayScene extends Phaser.Scene {
       .setOrigin(0, 1)
       .setDepth(30);
 
-    // Decorative Hoysala/Golden pillars across palace terraces
-    const pillarCols = [14, 33, 47, 74, 88, 128, 143];
-    for (const tx of pillarCols) {
-      this.add.image(tx * TILE_SIZE, 11 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 3).setOrigin(0, 0).setDepth(41);
-      this.add.image(tx * TILE_SIZE, 10 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 4).setOrigin(0, 0).setDepth(41);
-      this.add.image(tx * TILE_SIZE, 9 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 5).setOrigin(0, 0).setDepth(41);
-    }
-
     // Sea-Cliff Exit Torana Arch (Zone 5, foreground framing)
     const exitX = this.levelDef.exitTxMin * TILE_SIZE - 16;
     const exitY = 12 * TILE_SIZE;
@@ -234,26 +213,41 @@ export class PlayScene extends Phaser.Scene {
     const left = tx > 0 ? grid[ty][tx - 1] : 'EMPTY';
     const right = tx < this.levelDef.cols - 1 ? grid[ty][tx + 1] : 'EMPTY';
     const above = ty > 0 ? grid[ty - 1][tx] : 'EMPTY';
+    const above2 = ty > 1 ? grid[ty - 2][tx] : 'EMPTY';
 
     if (mat === 'STONE') {
-      if (above === 'EMPTY') {
-        if (left === 'EMPTY') return 0;   // left finial
-        if (right === 'EMPTY') return 3;  // right finial
-        return tx % 2 === 0 ? 1 : 2;      // mid cornice A/B
+      // Top walkable sandstone terrace surface (matching ref_gameplay.png)
+      if (above !== 'STONE') {
+        if (left === 'EMPTY') return 0;   // left terrace corner
+        if (right === 'EMPTY') return 3;  // right terrace corner
+        return tx % 2 === 0 ? 1 : 2;      // sunlit sandstone flagstones + gold cornice + frieze
       }
-      if (above === 'STONE' && ty === 13) return 8; // dark interior base fill
-      if ((tx + ty) % 7 === 0) return 6;  // ornate relief frieze
-      return (tx + ty) % 2 === 0 ? 4 : 5; // carved sandstone brick A/B
+      // 1 row below top surface -> continuous carved scroll frieze border
+      if (above === 'STONE' && above2 !== 'STONE') {
+        if (left !== 'STONE') return 6;
+        if (right !== 'STONE') return 7;
+        return 4;
+      }
+      // Deeper interior -> dark framed palace undercroft with carved corner borders
+      if (left !== 'STONE') return 6;
+      if (right !== 'STONE') return 7;
+      return 5;
     }
 
     if (mat === 'WOOD_ROOF') {
       const posOffset = left !== 'WOOD_ROOF' ? 0 : right !== 'WOOD_ROOF' ? 2 : 1;
       const cell = this.sim.fireGrid.getCell(tx, ty);
-      let stateOffset = 0;
-      if (cell?.fireState === 'IGNITING') stateOffset = 3;
-      else if (cell?.fireState === 'BURNING') stateOffset = 6;
-      else if (cell?.fireState === 'COLLAPSED') stateOffset = 9;
-      return 1 * 16 + stateOffset + posOffset;
+      if (cell?.fireState === 'COLLAPSED') return 1 * 16 + 9 + posOffset;
+      if (cell?.fireState === 'BURNING') return 1 * 16 + 6 + posOffset;
+      if (cell?.fireState === 'IGNITING') return 1 * 16 + 3 + posOffset;
+      // Top row of WOOD_ROOF = ribbed golden palace eave; stacked rows underneath = carved palace facade bays/pillars!
+      if (above === 'WOOD_ROOF') {
+        if (left !== 'WOOD_ROOF' || right !== 'WOOD_ROOF') {
+          return 4 * 16 + 1; // carved sandstone palace pillar edge
+        }
+        return (tx + ty) % 3 === 0 ? 8 : 4 * 16 + 4; // arched palace window / golden pillar facade
+      }
+      return 1 * 16 + posOffset;
     }
 
     if (mat === 'BANNER') {
@@ -286,6 +280,13 @@ export class PlayScene extends Phaser.Scene {
       for (let tx = 0; tx < this.levelDef.cols; tx++) {
         const mat = this.levelDef.grid[ty][tx];
         if (mat === 'EMPTY') {
+          // Ground palace facade walls behind/under raised WOOD_ROOF pavilions so nothing looks like floating sticks
+          const above = ty > 0 ? this.levelDef.grid[ty - 1][tx] : 'EMPTY';
+          if (above === 'WOOD_ROOF' && ty >= 5 && ty <= 11) {
+            this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'tileset_lanka', 8)
+              .setOrigin(0, 0)
+              .setDepth(28);
+          }
           rowArr.push(null);
           continue;
         }

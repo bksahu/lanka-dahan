@@ -285,234 +285,234 @@ def build_tileset_lanka() -> None:
         im = grid_to_image(make_16(rows))
         sheet.paste(im, (col * 16, row * 16))
 
-    # ── Row 0: STONE (0..11) — Warm carved sandstone & golden cornice trim ─────
-    # 0: Golden cornice left finial
+    # ── Row 0: STONE (0..11) — Sunlit sandstone terraces, carved frieze & dark framed undercroft (ref_gameplay.png) ──
+    # 0: Left terrace corner (paved cream-sandstone top + gold edge + carved left border)
     put_tile(0, 0, [
-        "..O.OOOOOOOOOOOO",
-        ".OSBOSBSBSBSBSBS",
-        "OSBSOBBBBBBBBBBB",
-        "OBBGGGGGGGGGGGGG",
-        "OdGGGGGGGGGGGGGG",
-        "OdSBBBBBBBBBBBBB",
-        "OdaAAaAAaAAaAAaA",
-        "OdaAAaGGaAAaGGaA",
-        "OdAAAAAAAAAAAAAA",
-        "Odgggggggggggggg",
-        "OdaaAAaaAAaaAAaa",
-        "OdaGAAaGaGAAaGaG",
-        "OdaaAAaaAAaaAAaa",
+        ".OOOOOOOOOOOOOOO",
+        "OSHHHHHHHHHHHHHH",
+        "OSAAAAAAAAAAAAAA",
+        "OAAAAAAAAAAAAAAA",
+        "OaaaaaaAAaaaaaaa",
+        "OBBBBBBBBBBBBBBB",
+        "OGGGGGGGGGGGGGGG",
+        "Oggggggggggggggg",
+        "OdwGgdwGgdwGgdwG",
+        "Odwagdwagdwagdwa",
+        "OdwGgdwGgdwGgdwG",
         "Oddddddddddddddd",
-        "Odwwwwwwwwwwwwww",
-        "Owwwwwwwwwwwwwww",
+        "OdaO111111111111",
+        "OdGOOOOOOOOOOOOO",
+        "OdaO111111111111",
+        "OdGO111111111111",
     ])
-    # 1: Golden cornice mid-A
+    # 1: Mid terrace A (wide warm sandstone flagstones + crisp gold lip + scroll frieze)
     put_tile(1, 0, [
         "OOOOOOOOOOOOOOOO",
-        "BSBSBSBSBSBSBSBS",
+        "SSSSSSSSSSSSSSSS",
+        "AAAAAAAAAAAAAAAA",
+        "AAAAAaAAAAAAAAAA",
+        "aaaaaaaaaAAaaaaa",
         "BBBBBBBBBBBBBBBB",
         "GGGGGGGGGGGGGGGG",
-        "gGGGGGGGGGGGGGGg",
-        "SBBBBBBBBBBBBBBS",
-        "aAAaAAaAAaAAaAAa",
-        "aGGaAAaGGaAAaGGa",
-        "AAAAAAAAAAAAAAAA",
         "gggggggggggggggg",
-        "aaAAaaAAaaAAaaAA",
-        "aGaGAAaGaGAAaGaG",
-        "aaAAaaAAaaAAaaAA",
+        "dwGgdwGgdwGgdwGg",
+        "dwagdwagdwagdwag",
+        "dwGgdwGgdwGgdwGg",
         "dddddddddddddddd",
-        "wwwwwwwwwwwwwwww",
-        "dddddddddddddddd",
+        "1111111111111111",
+        "OOOOOOOOOOOOOOOO",
+        "1111111111111111",
+        "1111111111111111",
     ])
-    # 2: Golden cornice mid-B (ribbed tile pattern)
+    # 2: Mid terrace B (offset flagstone seam + matching frieze)
     put_tile(2, 0, [
         "OOOOOOOOOOOOOOOO",
-        "SBSBSBSBSBSBSBSB",
-        "BBBBBBBBBBBBBBBB",
-        "GGGGgGGGGGGgGGGG",
-        "GGGGgGGGGGGgGGGG",
-        "BBBBBBBBBBBBBBBB",
-        "AAaAAaAAaAAaAAaA",
-        "GGaAAaGGaAAaGGaA",
-        "AAAAAAAAAAAAAAAA",
-        "gggggggggggggggg",
-        "AAaaAAaaAAaaAAaa",
-        "GaGAAaGaGAAaGaGa",
-        "AAaaAAaaAAaaAAaa",
-        "dddddddddddddddd",
-        "wwwwwwwwwwwwwwww",
-        "dddddddddddddddd",
-    ])
-    # 3: Golden cornice right finial
-    put_tile(3, 0, [
-        "OOOOOOOOOOOO.O..",
-        "SBSBSBSBSBSOBSO.",
-        "BBBBBBBBBBBOSBSO",
-        "GGGGGGGGGGGGGBBO",
-        "GGGGGGGGGGGGGGdO",
-        "BBBBBBBBBBBBBBSO",
-        "aAAaAAaAAaAAaAdO",
-        "aAAaGGaAAaGGaAdO",
-        "AAAAAAAAAAAAAadO",
-        "ggggggggggggggdO",
-        "aaAAaaAAaaAAaadO",
-        "aGaGAAaGaGAAaGdO",
-        "aaAAaaAAaaAAaadO",
-        "ddddddddddddddOO",
-        "wwwwwwwwwwwwwwOO",
-        "ddddddddddddddOO",
-    ])
-    # 4: Carved sandstone brick A (warm brown mortar, no harsh black stripes)
-    put_tile(4, 0, [
-        "aAAaAAawAAaAAaAw",
-        "aAAaAAawAAaAAaAw",
-        "aaaaaaawaaaaaaaa",
-        "wwwwwwwwwwwwwwww",
-        "AAawAAaAAaAAawAA",
-        "AAawAAaAAaAAawAA",
-        "aaawaaaaaaaaawaa",
-        "wwwwwwwwwwwwwwww",
-        "aAAaAAawAAaAAaAw",
-        "aAAaAAawAAaAAaAw",
-        "aaaaaaawaaaaaaaa",
-        "wwwwwwwwwwwwwwww",
-        "AAawAAaAAaAAawAA",
-        "AAawAAaAAaAAawAA",
-        "aaawaaaaaaaaawaa",
-        "wwwwwwwwwwwwwwww",
-    ])
-    # 5: Carved sandstone brick B (warm carved reliefs)
-    put_tile(5, 0, [
-        "AAaAAaAwaAAaAAaw",
-        "AAaGGaAwaAAaAAaw",
-        "aaaaaaawaaaaaaaa",
-        "wwwwwwwwwwwwwwww",
-        "aAAwAAaAAaAAawAA",
-        "aAAwAAaGGaAAawAA",
-        "aaawaaaaaaaaawaa",
-        "wwwwwwwwwwwwwwww",
-        "AAaAAaAwaAAaAAaw",
-        "AAaAAaAwaAAaGGaw",
-        "aaaaaaawaaaaaaaa",
-        "wwwwwwwwwwwwwwww",
-        "aAAwAAaAAaAAawAA",
-        "aAAwAAaAAaAAawAA",
-        "aaawaaaaaaaaawaa",
-        "wwwwwwwwwwwwwwww",
-    ])
-    # 6: Ornate relief frieze block
-    put_tile(6, 0, [
-        "BBBBBBBBBBBBBBBB",
-        "GGGGGGGGGGGGGGGG",
-        "gddBddgddBddgddB",
-        "gdBSBdgBBSBBgdBS",
-        "gdBGBdgdBGBdgdBG",
-        "gddBddgddBddgddB",
-        "GGGGGGGGGGGGGGGG",
-        "dddddddddddddddd",
-        "aAAaAAaAAaAAaAAa",
-        "aABBAaABBAaABBAa",
-        "aABBAaABBAaABBAa",
-        "aAAaAAaAAaAAaAAa",
-        "gggggggggggggggg",
-        "wwwwwwwwwwwwwwww",
-        "wwwwwwwwwwwwwwww",
-        "OOOOOOOOOOOOOOOO",
-    ])
-    # 7: Gold-trimmed ledge cap
-    put_tile(7, 0, [
-        "OOOOOOOOOOOOOOOO",
         "SSSSSSSSSSSSSSSS",
+        "AAAAAAAAAAaAAAAA",
+        "AAAAAAAAAAAAAAAA",
+        "aaAAaaaaaaaaaaaa",
         "BBBBBBBBBBBBBBBB",
         "GGGGGGGGGGGGGGGG",
         "gggggggggggggggg",
+        "GgdwGgdwGgdwGgdw",
+        "agdwagdwagdwagdw",
+        "GgdwGgdwGgdwGgdw",
         "dddddddddddddddd",
-        "aAAaAAaAAaAAaAAa",
-        "aaAAaaAAaaAAaaAA",
-        "wwwwwwwwwwwwwwww",
-        "aAAaAAaAAaAAaAAa",
-        "aaAAaaAAaaAAaaAA",
-        "wwwwwwwwwwwwwwww",
-        "dddddddddddddddd",
-        "wwwwwwwwwwwwwwww",
-        "wwwwwwwwwwwwwwww",
+        "1111111111111111",
         "OOOOOOOOOOOOOOOO",
+        "1111111111111111",
+        "1111111111111111",
     ])
-    # 8: Solid dark interior stone fill
+    # 3: Right terrace corner
+    put_tile(3, 0, [
+        "OOOOOOOOOOOOOOO.",
+        "HHHHHHHHHHHHHHSO",
+        "AAAAAAAAAAAAAASO",
+        "AAAAAAAAAAAAAAAO",
+        "aaaaaaaAAaaaaaaO",
+        "BBBBBBBBBBBBBBBO",
+        "GGGGGGGGGGGGGGGO",
+        "gggggggggggggggO",
+        "GgdwGgdwGgdwGgdO",
+        "agdwagdwagdwagdO",
+        "GgdwGgdwGgdwGgdO",
+        "dddddddddddddddO",
+        "111111111111OadO",
+        "OOOOOOOOOOOOOGdO",
+        "111111111111OadO",
+        "111111111111OGdO",
+    ])
+    # 4: Continuous carved scroll/lotus frieze band (upper palace wall / terrace border)
+    put_tile(4, 0, [
+        "gggggggggggggggg",
+        "GdwGgdwGgdwGgdwG",
+        "aGdwagdwagdwagdw",
+        "GdwGgdwGgdwGgdwG",
+        "dddddddddddddddd",
+        "OOOOOOOOOOOOOOOO",
+        "1111111111111111",
+        "1O111111111111O1",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+    ])
+    # 5: Deep dark palace interior shadow (clean dark undercroft matching ref_gameplay.png)
+    put_tile(5, 0, [
+        "1111111111111111",
+        "11O1111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111O11111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111O11111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "11111111111111O1",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+    ])
+    # 6: Left carved vertical pillar / frieze border for palace walls
+    put_tile(6, 0, [
+        "OdaGgdwO11111111",
+        "OdaagdwO11111111",
+        "OdaGgdwO11111111",
+        "OdaagdwO11111111",
+        "OdaGgdwO11111111",
+        "OdaagdwO11111111",
+        "OdaGgdwO11111111",
+        "OdaagdwO11111111",
+        "OdaGgdwO11111111",
+        "OdaagdwO11111111",
+        "OdaGgdwO11111111",
+        "OdaagdwO11111111",
+        "OdaGgdwO11111111",
+        "OdaagdwO11111111",
+        "OdaGgdwO11111111",
+        "OdaagdwO11111111",
+    ])
+    # 7: Right carved vertical pillar / frieze border for palace walls
+    put_tile(7, 0, [
+        "11111111OwdgGadO",
+        "11111111OwdgaadO",
+        "11111111OwdgGadO",
+        "11111111OwdgaadO",
+        "11111111OwdgGadO",
+        "11111111OwdgaadO",
+        "11111111OwdgGadO",
+        "11111111OwdgaadO",
+        "11111111OwdgGadO",
+        "11111111OwdgaadO",
+        "11111111OwdgGadO",
+        "11111111OwdgaadO",
+        "11111111OwdgGadO",
+        "11111111OwdgaadO",
+        "11111111OwdgGadO",
+        "11111111OwdgaadO",
+    ])
+    # 8: Warm sandstone palace facade wall with recessed dark arch (for building fronts)
     put_tile(8, 0, [
-        "wWwwwwWwWwwwwWww",
-        "wwwwwwwwwwwwwwww",
-        "wwdwwwwwdwwwwwdw",
-        "wwwwwwwwwwwwwwww",
-        "WwwwwWwwwwWwwwwW",
-        "wwwwwwwwwwwwwwww",
-        "wwwdwwwwdwwwwdww",
-        "wwwwwwwwwwwwwwww",
-        "wWwwwwWwWwwwwWww",
-        "wwwwwwwwwwwwwwww",
-        "wwwwdwwwwdwwwwdw",
-        "wwwwwwwwwwwwwwww",
-        "WwwwwWwwwwWwwwwW",
-        "wwwwwwwwwwwwwwww",
-        "wwdwwwwwdwwwwwdw",
+        "aaaaaaaaaaaaaaaa",
+        "aAAaAAaAAaAAaAAa",
+        "aaWaaaWaaWaaaWaa",
+        "aaaaOGGGGGGOaaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOGOOOOOOGOaaa",
+        "aaaOBBBBBBBBOaaa",
+        "gggggggggggggggg",
         "wwwwwwwwwwwwwwww",
     ])
-    # 9: Carved stone balustrade railing
+    # 9: Carved stone balustrade railing (warm sunlit sandstone posts matching ref_gameplay.png)
     put_tile(9, 0, [
         "................",
         "................",
         "................",
         "................",
         "OOOOOOOOOOOOOOOO",
-        "SBBBBBBBBBBBBBBS",
-        "GGGGGGGGGGGGGGGG",
-        "O..OaAO..OaAO..O",
+        "OSSSSSSSSSSSSSSO",
+        "OAAAAAAAAAAAAAAO",
+        "OaaOaaOaaOaaOaaO",
         "O..OAAO..OAAO..O",
         "O..OaAO..OaAO..O",
-        "O..OaaO..OaaO..O",
-        "O..OWWO..OWWO..O",
-        "GGGGGGGGGGGGGGGG",
-        "aaaaaaaaaaaaaaaa",
-        "wwwwwwwwwwwwwwww",
+        "O..OaAO..OaAO..O",
+        "O..OwwO..OwwO..O",
+        "OAAAAAAAAAAAAAAO",
+        "OggggggggggggggO",
+        "OddddddddddddddO",
         "OOOOOOOOOOOOOOOO",
     ])
-    # 10: Left stair tile
+    # 10: Left stepped terrace stair (ref_gameplay.png center terrace steps)
     put_tile(10, 0, [
         "........OOOOOOOO",
-        "........SBBBBBBB",
-        "........GGGGGGGG",
+        "........SSSSSSSS",
         "........AAAAAAAA",
-        "OOOOOOOOaaaaaaaa",
-        "SBBBBBBBgggggggg",
-        "GGGGGGGGaAAaAAaA",
-        "AAAAAAAAaaaaaaaa",
-        "aaaaaaaawwwwwwww",
-        "ggggggggwWwwwwWw",
-        "aAAaAAaAwwwwwwww",
-        "aaaaaaaaaaaaaaaa",
-        "wwwwwwwwwwwwwwww",
-        "dddddddddddddddd",
-        "wwwwwwwwwwwwwwww",
-        "OOOOOOOOOOOOOOOO",
+        "........BBBBBBBB",
+        "OOOOOOOOgggggggg",
+        "SSSSSSSSdwGgdwGg",
+        "AAAAAAAAdwagdwag",
+        "BBBBBBBBdddddddd",
+        "GGGGGGGG11111111",
+        "dwGgdwGg11111111",
+        "dwagdwag11111111",
+        "dddddddd11111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
     ])
-    # 11: Right stair tile
+    # 11: Right stepped terrace stair
     put_tile(11, 0, [
         "OOOOOOOO........",
-        "BBBBBBBS........",
-        "GGGGGGGG........",
+        "SSSSSSSS........",
         "AAAAAAAA........",
-        "aaaaaaaaOOOOOOOO",
-        "ggggggggBBBBBBBS",
-        "aAAaAAaAGGGGGGGG",
-        "aaaaaaaaAAAAAAAA",
-        "wwwwwwwwaaaaaaaa",
-        "wWwwwwWwgggggggg",
-        "wwwwwwwwaAAaAAaA",
-        "aaaaaaaaaaaaaaaa",
-        "wwwwwwwwwwwwwwww",
-        "dddddddddddddddd",
-        "wwwwwwwwwwwwwwww",
-        "OOOOOOOOOOOOOOOO",
+        "BBBBBBBB........",
+        "ggggggggOOOOOOOO",
+        "dwGgdwGgSSSSSSSS",
+        "dwagdwagAAAAAAAA",
+        "ddddddddBBBBBBBB",
+        "11111111GGGGGGGG",
+        "11111111dwGgdwGg",
+        "11111111dwagdwag",
+        "11111111dddddddd",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
     ])
 
     # ── Row 1: WOOD_ROOF (4 states × 3 widths [L, M, R] = cols 0..11) ──────────
@@ -549,12 +549,12 @@ def build_tileset_lanka() -> None:
 
         rows = [
             "OOOOOOOOOOOOOOOO",
-            "BGBGBGBGBGBGBGBG",  # top gold-trimmed timber ridge
-            "WWWWWWWWWWWWWWWW",
-            "WwWWwWWwWWwWWwWW",
-            "wwwwwwwwwwwwwwww",
-            "WWWWWWWWWWWWWWWW",
-            "WwWWwWWwWWwWWwWW",
+            "SSSSSSSSSSSSSSSS",  # bright sunlit gold ridge
+            "BBBBBBBBBBBBBBBB",  # ribbed golden roof tiles
+            "GBGGBGGBGGBGGBGG",
+            "GGGGGGGGGGGGGGGG",
+            "gBBggBBggBBggBBg",  # curved golden eave lip
+            "WwwWWwwWWwwWWwwW",  # dark teak rafters underneath
             "wwwwwwwwwwwwwwww",
             "OO..OWWOO..OWWOO",
             "....OwwO....OwwO",
@@ -566,15 +566,17 @@ def build_tileset_lanka() -> None:
             "................",
         ]
         if pos == "L":
-            rows[0] = ".OOOOOOOOOOOOOOO"
-            rows[1] = "SBGBGBGBGBGBGBGB"
-            rows[2] = "OWWWWWWWWWWWWWWW"
+            rows[0] = "..O.OOOOOOOOOOOO"
+            rows[1] = ".OSBSSSSSSSSSSSS"
+            rows[2] = "OSBBBBBBBBBBBBBB"
+            rows[5] = "OBBggBBggBBggBBg"
             rows[8] = "OWW.OWWOO..OWWOO"
             rows[9] = "Oww.OwwO....OwwO"
         elif pos == "R":
-            rows[0] = "OOOOOOOOOOOOOOO."
-            rows[1] = "BGBGBGBGBGBGBGBS"
-            rows[2] = "WWWWWWWWWWWWWWWO"
+            rows[0] = "OOOOOOOOOOOO.O.."
+            rows[1] = "SSSSSSSSSSSSBSO."
+            rows[2] = "BBBBBBBBBBBBBBBO"
+            rows[5] = "gBBggBBggBBggBBO"
             rows[8] = "OO..OWWOO..OWWWO"
             rows[9] = "....OwwO....OwwO"
 
