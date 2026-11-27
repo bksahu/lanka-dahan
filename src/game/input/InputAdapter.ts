@@ -46,6 +46,15 @@ export class InputAdapter {
     this.setupTouchZone('touch-right', 'right');
     this.setupTouchZone('touch-jump', 'jump');
     this.setupTouchZone('touch-whip', 'whip');
+
+    // Prevent iOS Safari double-tap zoom & pinch-zoom on rapid button taps
+    document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+    const touchRoot = document.getElementById('touch-controls');
+    if (touchRoot) {
+      touchRoot.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
+    }
   }
 
   setAudioUnlockCallback(cb: () => void): void {
