@@ -241,16 +241,16 @@ Legend: .=transparent K=#090B17 H/L/G/g/k=Gold S/s/d=Skin/Sandstone R/r/c=Crimso
 
 === STONE_0 (col 0, row 0) ===
 .KKKKKKKKKKKKKKK
-KHMMMMMMMMMMMMMM
+KHMMMMMMMMMMMMMH
 KHSSSSSSSSSSSSSS
 KSSSSSSSSSSSSSSS
 KssssssSSsssssss
 KLLLLLLLLLLLLLLL
 KGGGGGGGGGGGGGGG
 Kggggggggggggggg
-KktGgktGgktGgktG
-Kktsgktsgktsgkts
-KktGgktGgktGgktG
+KktGgktGgktGgktg
+Kktsgktsgktsgktg
+KktGgktGgktGgktg
 Kkkkkkkkkkkkkkkk
 KksK111111111111
 KkGKKKKKKKKKKKKK

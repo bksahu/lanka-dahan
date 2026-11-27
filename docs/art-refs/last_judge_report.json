@@ -2,7 +2,7 @@
   "scores": {
     "hanuman_identity": 10.0,
     "cross_frame_consistency": 9.05,
-    "architecture_and_tiles": 9.89,
+    "architecture_and_tiles": 9.9,
     "scene_composition_and_contrast": 10.0
   },
   "overall_pass": true,

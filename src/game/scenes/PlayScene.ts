@@ -140,23 +140,14 @@ export class PlayScene extends Phaser.Scene {
   private buildDecorativeLandmarks(): void {
     const grid = this.levelDef.grid;
 
-    // ── Depth 25-26: Golden Shikhara Temples & Curved Roof Domes on open un-roofed terraces ──
+    // ── Depth 15: Golden Shikhara Temples rising majestically behind rooftops (matching ref_gameplay.png) ──
     const shikharas: [number, number][] = [
-      [56, 10], [127, 10],
+      [21, 10], [135, 10],
     ];
     for (const [tx, ty] of shikharas) {
       this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'props_lanka', 'props_lanka 8.aseprite')
         .setOrigin(0.5, 1)
-        .setDepth(25);
-    }
-
-    const roofDomes: [number, number][] = [
-      [66, 10], [143, 10],
-    ];
-    for (const [tx, ty] of roofDomes) {
-      this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'props_lanka', 'props_lanka 9.aseprite')
-        .setOrigin(0.5, 1)
-        .setDepth(26);
+        .setDepth(15);
     }
 
     // ── Depth 28: Carved supporting sandstone pillars under raised WOOD_ROOF pavilions ──
@@ -166,7 +157,9 @@ export class PlayScene extends Phaser.Scene {
         const leftW = tx > 0 ? grid[ty][tx - 1] : 'EMPTY';
         const rightW = tx < this.levelDef.cols - 1 ? grid[ty][tx + 1] : 'EMPTY';
         const isEdge = leftW !== 'WOOD_ROOF' || rightW !== 'WOOD_ROOF';
-        if (!isEdge) continue;
+        // Support long pavilions with intermediate pillars every 4 tiles
+        const isSupport = isEdge || (tx % 4 === 0 && grid[ty + 1][tx] !== 'BANNER');
+        if (!isSupport) continue;
 
         // Place pillar down to solid STONE/SACRED floor below (or bottom of world)
         let floorTy = this.levelDef.rows;
@@ -189,6 +182,33 @@ export class PlayScene extends Phaser.Scene {
       }
     }
 
+    // ── Depth 38: Solid supporting palace colonnade & undercroft under ground-level WOOD_ROOF (row 10) ──
+    // Eliminates all floating roofs at cols 9-18, 130-132, 138-140 down to the bottom of the world
+    for (let tx = 0; tx < this.levelDef.cols; tx++) {
+      if (grid[10][tx] !== 'WOOD_ROOF') continue;
+      const leftW = tx > 0 ? grid[10][tx - 1] : 'EMPTY';
+      const rightW = tx < this.levelDef.cols - 1 ? grid[10][tx + 1] : 'EMPTY';
+      const isEdge = leftW !== 'WOOD_ROOF' || rightW !== 'WOOD_ROOF';
+
+      // Row 11: carved capital / arched window bay
+      const frame11 = isEdge ? 4 * 16 + 2 : (tx % 3 === 0 ? 8 : 4 * 16 + 4);
+      this.add.image(tx * TILE_SIZE, 11 * TILE_SIZE, 'tileset_lanka', frame11)
+        .setOrigin(0, 0)
+        .setDepth(38);
+
+      // Row 12: carved pillar column / recessed undercroft
+      const frame12 = isEdge ? 4 * 16 + 1 : 5;
+      this.add.image(tx * TILE_SIZE, 12 * TILE_SIZE, 'tileset_lanka', frame12)
+        .setOrigin(0, 0)
+        .setDepth(38);
+
+      // Row 13: carved sandstone plinth base
+      const frame13 = isEdge ? 4 * 16 + 0 : 5;
+      this.add.image(tx * TILE_SIZE, 13 * TILE_SIZE, 'tileset_lanka', frame13)
+        .setOrigin(0, 0)
+        .setDepth(38);
+    }
+
     // ── Depth 30 & 27: Torana Archways on open flat terraces & Stone Balustrade Railings ──
     const toranaPositions: [number, number][] = [
       [1, 11], [50, 10], [120, 10],
@@ -199,7 +219,7 @@ export class PlayScene extends Phaser.Scene {
         .setDepth(30);
     }
 
-    // Balustrade railings along open flat STONE terraces behind pillars & torches
+    // Balustrade railings along open flat STONE terraces (skipping open Torana doorways)
     for (let ty = 1; ty < this.levelDef.rows; ty++) {
       for (let tx = 6; tx < this.levelDef.cols - 5; tx++) {
         const mat = grid[ty][tx];
@@ -207,7 +227,9 @@ export class PlayScene extends Phaser.Scene {
         const left = grid[ty][tx - 1];
         const right = grid[ty][tx + 1];
         if (mat === 'STONE' && above === 'EMPTY' && left === 'STONE' && right === 'STONE') {
-          if (tx < 96 || tx > 119) {
+          // Keep Ashoka sacred grove open and leave Torana arch passages unobstructed
+          const isToranaPassage = toranaPositions.some(([ax, ay]) => ay === ty && tx >= ax && tx <= ax + 3);
+          if ((tx < 96 || tx > 119) && !isToranaPassage) {
             this.add.image(tx * TILE_SIZE, (ty - 1) * TILE_SIZE, 'tileset_lanka', 9)
               .setOrigin(0, 0)
               .setDepth(27);
@@ -216,9 +238,9 @@ export class PlayScene extends Phaser.Scene {
       }
     }
 
-    // Standing brass diyas firmly seated on clear flat STONE terraces (never clipping or floating)
+    // Standing brass diyas firmly seated on clear flat STONE terraces (never clipping or floating in pits)
     const diyaPositions: [number, number][] = [
-      [6, 11], [22, 10], [44, 12], [58, 10], [61, 12], [78, 12], [81, 12], [89, 10], [124, 10], [147, 10], [158, 10],
+      [6, 11], [22, 10], [34, 10], [54, 10], [70, 10], [88, 10], [124, 10], [147, 10], [158, 10],
     ];
     for (const [tx, ty] of diyaPositions) {
       const diya = this.add.sprite(tx * TILE_SIZE + 8, ty * TILE_SIZE, 'props_lanka')
@@ -364,10 +386,13 @@ export class PlayScene extends Phaser.Scene {
 
     this.updateParticles(frameDt);
 
-    // Parallax sync
+    // Parallax sync with natural vertical anchoring
     const camX = this.cameras.main.scrollX;
+    const camY = this.cameras.main.scrollY;
     this.bgFarSpires.tilePositionX = camX * 0.15;
     this.bgMidPalace.tilePositionX = camX * 0.35;
+    this.bgFarSpires.tilePositionY = (camY - 44) * 0.12;
+    this.bgMidPalace.tilePositionY = (camY - 44) * 0.25;
 
     // Subtle warm fire glow & dynamic ambient fire bed scaled by active BURNING tiles
     const activeBurning = this.flameOverlays.size;
