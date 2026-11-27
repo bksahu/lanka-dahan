@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Lanka Dahan — Sundara Kanda</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #0b0a14;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #game-wrapper {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0b0a14;
+    }
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    #game-container canvas {
+      display: block;
+    }
+    /* Touch controls — positioned outside game canvas */
+    #touch-controls {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 25vh;
+      min-height: 80px;
+      max-height: 140px;
+      pointer-events: none;
+      z-index: 100;
+    }
+    #touch-controls.active { display: flex; }
+    .touch-zone {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.25;
+      font-size: 2rem;
+      color: #fff;
+    }
+    .touch-zone:active { opacity: 0.5; }
+    #touch-left  { flex: 1; }
+    #touch-right { flex: 1; }
+    #touch-jump  { flex: 1.2; }
+    #touch-whip  { flex: 1; }
+
+    /* Landscape orientation hint for phones */
+    @media (max-width: 600px) and (orientation: portrait) {
+      #rotate-hint {
+        display: flex !important;
+        position: fixed; inset: 0;
+        background: #0b0a14ee;
+        color: #f0b83d;
+        font-family: monospace;
+        font-size: 1.1rem;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        gap: 1rem;
+      }
+      #rotate-hint::before { content: '🔄'; font-size: 3rem; }
+    }
+    #rotate-hint { display: none; }
+  </style>
+</head>
+<body>
+  <div id="rotate-hint">Rotate your device to landscape</div>
+  <div id="game-wrapper">
+    <div id="game-container"></div>
+  </div>
+  <div id="touch-controls">
+    <div id="touch-left" class="touch-zone">◀</div>
+    <div id="touch-right" class="touch-zone">▶</div>
+    <div id="touch-jump" class="touch-zone">⬆</div>
+    <div id="touch-whip" class="touch-zone">🔥</div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
