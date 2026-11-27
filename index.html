@@ -37,32 +37,49 @@
     #game-container canvas {
       display: block;
     }
-    /* Touch controls — positioned outside game canvas */
+    /* Touch controls — crisp landscape layout in bottom corners */
     #touch-controls {
       display: none;
       position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 25vh;
-      min-height: 80px;
-      max-height: 140px;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      left: max(12px, env(safe-area-inset-left));
+      right: max(12px, env(safe-area-inset-right));
+      height: 72px;
       pointer-events: none;
       z-index: 100;
+      justify-content: space-between;
+      align-items: flex-end;
+      touch-action: none;
+      -webkit-touch-callout: none;
     }
     #touch-controls.active { display: flex; }
+    .touch-group {
+      display: flex;
+      gap: 12px;
+      pointer-events: none;
+    }
     .touch-zone {
       pointer-events: auto;
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      background: rgba(18, 20, 43, 0.65);
+      border: 2px solid rgba(240, 184, 61, 0.75);
       display: flex;
       align-items: center;
       justify-content: center;
-      opacity: 0.25;
-      font-size: 2rem;
-      color: #fff;
+      font-size: 1.5rem;
+      color: #fff1a8;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
     }
-    .touch-zone:active { opacity: 0.5; }
-    #touch-left  { flex: 1; }
-    #touch-right { flex: 1; }
-    #touch-jump  { flex: 1.2; }
-    #touch-whip  { flex: 1; }
+    .touch-zone.pressed, .touch-zone:active {
+      background: rgba(255, 122, 26, 0.55);
+      border-color: #fffbe0;
+      transform: scale(0.95);
+    }
 
     /* Landscape orientation hint for phones */
     @media (max-width: 600px) and (orientation: portrait) {
@@ -90,10 +107,14 @@
     <div id="game-container"></div>
   </div>
   <div id="touch-controls">
-    <div id="touch-left" class="touch-zone">◀</div>
-    <div id="touch-right" class="touch-zone">▶</div>
-    <div id="touch-jump" class="touch-zone">⬆</div>
-    <div id="touch-whip" class="touch-zone">🔥</div>
+    <div class="touch-group">
+      <div id="touch-left" class="touch-zone" aria-label="Move Left">◀</div>
+      <div id="touch-right" class="touch-zone" aria-label="Move Right">▶</div>
+    </div>
+    <div class="touch-group">
+      <div id="touch-whip" class="touch-zone" aria-label="Tail Whip">🔥</div>
+      <div id="touch-jump" class="touch-zone" aria-label="Jump">⬆</div>
+    </div>
   </div>
   <script type="module" src="/src/main.ts"></script>
 </body>

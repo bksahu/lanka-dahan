@@ -48,6 +48,7 @@ export class PlayScene extends Phaser.Scene {
     this.accumulator = 0;
     this.prevPlayerState = 'IDLE';
     this.endSoundPlayed = false;
+    (this.registry.get('inputAdapter') as InputAdapter | undefined)?.enableTouchControls();
     this.flameOverlays.clear();
     this.enemySprites.clear();
     this.arrowSprites.clear();

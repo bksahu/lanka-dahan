@@ -65,9 +65,29 @@ export class InputAdapter {
     const el = document.getElementById(elementId);
     if (!el) return;
 
+    const releasePointer = (e: PointerEvent) => {
+      const a = this.pointers.get(e.pointerId);
+      if (a) {
+        this.pointers.delete(e.pointerId);
+        if (a === 'jump') {
+          this._jumpHeld = false;
+        }
+      }
+      if (!this.isPointerActive(action)) {
+        el.classList.remove('pressed');
+      }
+      e.preventDefault();
+    };
+
     el.addEventListener('pointerdown', (e) => {
       this.handleFirstInteraction();
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        // Ignore if pointer capture is unsupported
+      }
       this.pointers.set(e.pointerId, action);
+      el.classList.add('pressed');
       if (action === 'jump') {
         this._jumpPressed = true;
         this._jumpHeld = true;
@@ -78,32 +98,9 @@ export class InputAdapter {
       e.preventDefault();
     });
 
-    el.addEventListener('pointerup', (e) => {
-      const a = this.pointers.get(e.pointerId);
-      this.pointers.delete(e.pointerId);
-      if (a === 'jump') {
-        this._jumpHeld = false;
-      }
-      e.preventDefault();
-    });
-
-    el.addEventListener('pointercancel', (e) => {
-      const a = this.pointers.get(e.pointerId);
-      this.pointers.delete(e.pointerId);
-      if (a === 'jump') {
-        this._jumpHeld = false;
-      }
-      e.preventDefault();
-    });
-
-    el.addEventListener('pointerleave', (e) => {
-      const a = this.pointers.get(e.pointerId);
-      this.pointers.delete(e.pointerId);
-      if (a === 'jump') {
-        this._jumpHeld = false;
-      }
-      e.preventDefault();
-    });
+    el.addEventListener('pointerup', releasePointer);
+    el.addEventListener('pointercancel', releasePointer);
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
   private isJumpKey(code: string): boolean {
