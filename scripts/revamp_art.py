@@ -203,60 +203,68 @@ def build_bg_far_spires() -> None:
 
 def build_bg_mid_palace() -> None:
     """
-    Seamless 320x180 mid-ground darkened golden palace rooftops & banners.
+    Seamless 320x180 mid-ground darkened golden Svarna Lanka shikharas, curved roofs & banners.
     Mean luminance strictly < 95 (capped at GOLD_SHADOW #8A4E1D / sparse GOLD_MID #C78028).
     """
     w, h = 320, 180
     g = blank_grid(w, h, ".")
 
-    # Seamless horizon parapet across all 320px (period 64px)
+    # Distant golden palace terrace & colonnade base across all 320px (period 80px)
     for x in range(w):
-        lx = x % 64
-        # Stepped palace silhouette
-        if 8 <= lx < 28:
-            top_y = 104
-        elif 28 <= lx < 48:
-            top_y = 114
-        else:
-            top_y = 122
-
-        for y in range(top_y, h):
-            if y == top_y:
-                g[y][x] = "G" if lx % 4 < 2 else "g"
-            elif y < top_y + 3:
+        lx = x % 80
+        roof_y = 112 if (10 <= lx < 64) else 124
+        for y in range(roof_y, h):
+            if y == roof_y:
+                g[y][x] = "G" if lx % 3 != 0 else "g"
+            elif y < roof_y + 3:
                 g[y][x] = "g"
-            elif y < top_y + 7:
+            elif y < roof_y + 6:
                 g[y][x] = "d"
             else:
-                # Darkened timber/stone wall with arched palace windows
-                wx = lx % 16
-                if 5 <= wx <= 10 and (top_y + 12 <= y <= top_y + 24):
-                    if y == top_y + 12 and (wx == 5 or wx == 10):
-                        g[y][x] = "w"
+                # Pillared colonnade & warm recessed arches
+                px_mod = lx % 16
+                if roof_y + 10 <= y <= roof_y + 28 and 4 <= px_mod <= 11:
+                    arch_top = roof_y + 10 + abs(px_mod - 7) // 2
+                    if y >= arch_top:
+                        g[y][x] = "1" if (y > arch_top + 2 and 5 <= px_mod <= 10) else "g"
                     else:
-                        g[y][x] = "g" if (wx in (6, 9) or y < top_y + 15) else "d"
+                        g[y][x] = "d"
                 else:
-                    g[y][x] = "w" if (x % 16 < 2 or y % 8 == 0) else "2"
+                    g[y][x] = "w" if (px_mod in (0, 15) or y % 6 == 0) else "d"
 
-        # Distant lotus dome atop each 64px palace block (lx centered at 18)
-        if 10 <= lx <= 26:
-            dx = abs(lx - 18)
-            dome_y = 90 + (dx * dx) // 5
-            for y in range(dome_y, 104):
-                g[y][x] = "g" if lx < 18 else "d"
-                if y == dome_y:
-                    g[y][x] = "G"
-            if lx == 18:
-                for ky in range(84, 90):
-                    g[ky][x] = "G"
+    # Multi-tiered Kalinga / Dravidian Golden Shikharas every 80px (x=36, 116, 196, 276)
+    for tower_cx, top_y, bw in [(36, 56, 36), (116, 68, 30), (196, 50, 38), (276, 66, 32)]:
+        # Kalasha finial spire
+        for ky in range(top_y - 7, top_y):
+            g[ky][tower_cx % w] = "G" if ky % 2 == 0 else "g"
+        # Stepped ribbed shikhara tiers
+        for y in range(top_y, 112):
+            dy = y - top_y
+            half = min(bw // 2, int(2 + (dy ** 0.72) * 1.35))
+            tier_notch = (dy % 6 == 0)
+            if tier_notch and dy > 4:
+                half = max(2, half - 1)
+            for dx in range(-half, half + 1):
+                px_x = (tower_cx + dx) % w
+                rib = (abs(dx) % 4 == 0)
+                if dx == -half or tier_notch:
+                    g[y][px_x] = "G" if dx <= 0 else "g"
+                elif dx == half:
+                    g[y][px_x] = "d"
+                elif rib and dx < 0:
+                    g[y][px_x] = "g"
+                else:
+                    g[y][px_x] = "d" if dx > 2 else "w"
 
-        # Distant crimson banners (muted CRIMSON_DARK / CRIMSON_MID)
-        if 52 <= lx <= 56:
-            for y in range(106, 122):
-                if lx == 52:
-                    g[y][x] = "g"
-                elif y >= 108 and y <= 118 and lx >= 53:
-                    g[y][x] = "c" if (y + lx) % 2 == 0 else "C"
+    # Distant muted crimson palace banners waving from poles
+    for bx, by_top in [(68, 96), (148, 102), (228, 94), (308, 100)]:
+        for y in range(by_top, by_top + 18):
+            g[y][bx % w] = "g"
+        for dy in range(7):
+            sway = 1 if dy in (2, 3) else 0
+            span = 11 - dy // 2
+            for dx in range(1, span):
+                g[by_top + dy][(bx + dx + sway) % w] = "c" if (dy + dx) % 3 == 0 else "C"
 
     grid_to_image(g).save(BG_DIR / "bg_mid_palace.png", optimize=True)
 
@@ -277,25 +285,25 @@ def build_tileset_lanka() -> None:
         im = grid_to_image(make_16(rows))
         sheet.paste(im, (col * 16, row * 16))
 
-    # ── Row 0: STONE (0..11) ──────────────────────────────────────────────────
+    # ── Row 0: STONE (0..11) — Warm carved sandstone & golden cornice trim ─────
     # 0: Golden cornice left finial
     put_tile(0, 0, [
         "..O.OOOOOOOOOOOO",
         ".OSBOSBSBSBSBSBS",
         "OSBSOBBBBBBBBBBB",
         "OBBGGGGGGGGGGGGG",
-        "OOGGGGGGGGGGGGGG",
-        "OOGdGGGGGGGGGGGG",
-        "OOaAAaAAaAAaAAaA",
-        "OOaAAaOOaAAaOOaA",
-        "OOAAAAAAAAAAAAAA",
-        "OOgggggggggggggg",
-        "OOaaAAaaAAaaAAaa",
-        "OOaOAAaOaOAAaOaO",
-        "OOaaAAaaAAaaAAaa",
-        "OOdddddddddddddd",
-        "OOwwwwwwwwwwwwww",
-        "OOOOOOOOOOOOOOOO",
+        "OdGGGGGGGGGGGGGG",
+        "OdSBBBBBBBBBBBBB",
+        "OdaAAaAAaAAaAAaA",
+        "OdaAAaGGaAAaGGaA",
+        "OdAAAAAAAAAAAAAA",
+        "Odgggggggggggggg",
+        "OdaaAAaaAAaaAAaa",
+        "OdaGAAaGaGAAaGaG",
+        "OdaaAAaaAAaaAAaa",
+        "Oddddddddddddddd",
+        "Odwwwwwwwwwwwwww",
+        "Owwwwwwwwwwwwwww",
     ])
     # 1: Golden cornice mid-A
     put_tile(1, 0, [
@@ -304,17 +312,17 @@ def build_tileset_lanka() -> None:
         "BBBBBBBBBBBBBBBB",
         "GGGGGGGGGGGGGGGG",
         "gGGGGGGGGGGGGGGg",
-        "GdGGGGdGGGdGGGGd",
+        "SBBBBBBBBBBBBBBS",
         "aAAaAAaAAaAAaAAa",
-        "aOOaAAaOOaAAaOOa",
+        "aGGaAAaGGaAAaGGa",
         "AAAAAAAAAAAAAAAA",
         "gggggggggggggggg",
         "aaAAaaAAaaAAaaAA",
-        "aOaOAAaOaOAAaOaO",
+        "aGaGAAaGaGAAaGaG",
         "aaAAaaAAaaAAaaAA",
         "dddddddddddddddd",
         "wwwwwwwwwwwwwwww",
-        "OOOOOOOOOOOOOOOO",
+        "dddddddddddddddd",
     ])
     # 2: Golden cornice mid-B (ribbed tile pattern)
     put_tile(2, 0, [
@@ -323,17 +331,17 @@ def build_tileset_lanka() -> None:
         "BBBBBBBBBBBBBBBB",
         "GGGGgGGGGGGgGGGG",
         "GGGGgGGGGGGgGGGG",
-        "dGGGGGGGGGGGGGgd",
+        "BBBBBBBBBBBBBBBB",
         "AAaAAaAAaAAaAAaA",
-        "OOaAAaOOaAAaOOaA",
+        "GGaAAaGGaAAaGGaA",
         "AAAAAAAAAAAAAAAA",
         "gggggggggggggggg",
         "AAaaAAaaAAaaAAaa",
-        "OaOAAaOaOAAaOaOa",
+        "GaGAAaGaGAAaGaGa",
         "AAaaAAaaAAaaAAaa",
         "dddddddddddddddd",
         "wwwwwwwwwwwwwwww",
-        "OOOOOOOOOOOOOOOO",
+        "dddddddddddddddd",
     ])
     # 3: Golden cornice right finial
     put_tile(3, 0, [
@@ -341,56 +349,56 @@ def build_tileset_lanka() -> None:
         "SBSBSBSBSBSOBSO.",
         "BBBBBBBBBBBOSBSO",
         "GGGGGGGGGGGGGBBO",
-        "GGGGGGGGGGGGGGGO",
-        "GGGGGGGGGGGGdGGO",
-        "aAAaAAaAAaAAaAAO",
-        "aAAaOOaAAaOOaAAO",
-        "AAAAAAAAAAAAAAA.",
-        "gggggggggggggggO",
-        "aaAAaaAAaaAAaaAO",
-        "aOaOAAaOaOAAaOaO",
-        "aaAAaaAAaaAAaaAO",
+        "GGGGGGGGGGGGGGdO",
+        "BBBBBBBBBBBBBBSO",
+        "aAAaAAaAAaAAaAdO",
+        "aAAaGGaAAaGGaAdO",
+        "AAAAAAAAAAAAAadO",
+        "ggggggggggggggdO",
+        "aaAAaaAAaaAAaadO",
+        "aGaGAAaGaGAAaGdO",
+        "aaAAaaAAaaAAaadO",
         "ddddddddddddddOO",
         "wwwwwwwwwwwwwwOO",
-        "OOOOOOOOOOOOOOOO",
+        "ddddddddddddddOO",
     ])
-    # 4: Carved sandstone brick A
+    # 4: Carved sandstone brick A (warm brown mortar, no harsh black stripes)
     put_tile(4, 0, [
-        "aAAaAAaOAAaAAaAO",
-        "aAAaAAaOAAaAAaAO",
-        "aaaaaaaOaaaaaaaa",
-        "OOOOOOOOOOOOOOOO",
-        "AAaOAAaAAaAAaOAA",
-        "AAaOAAaAAaAAaOAA",
-        "aaaOaaaaaaaaaOaa",
-        "OOOOOOOOOOOOOOOO",
-        "aAAaAAaOAAaAAaAO",
-        "aAAaAAaOAAaAAaAO",
-        "aaaaaaaOaaaaaaaa",
-        "OOOOOOOOOOOOOOOO",
-        "AAaOAAaAAaAAaOAA",
-        "AAaOAAaAAaAAaOAA",
-        "wwwOwwwwwwwwwOww",
-        "OOOOOOOOOOOOOOOO",
+        "aAAaAAawAAaAAaAw",
+        "aAAaAAawAAaAAaAw",
+        "aaaaaaawaaaaaaaa",
+        "wwwwwwwwwwwwwwww",
+        "AAawAAaAAaAAawAA",
+        "AAawAAaAAaAAawAA",
+        "aaawaaaaaaaaawaa",
+        "wwwwwwwwwwwwwwww",
+        "aAAaAAawAAaAAaAw",
+        "aAAaAAawAAaAAaAw",
+        "aaaaaaawaaaaaaaa",
+        "wwwwwwwwwwwwwwww",
+        "AAawAAaAAaAAawAA",
+        "AAawAAaAAaAAawAA",
+        "aaawaaaaaaaaawaa",
+        "wwwwwwwwwwwwwwww",
     ])
-    # 5: Carved sandstone brick B
+    # 5: Carved sandstone brick B (warm carved reliefs)
     put_tile(5, 0, [
-        "AAaAAaAOaAAaAAaO",
-        "AAaGGaAOaAAaAAaO",
-        "aaaaaaaOaaaaaaaa",
-        "OOOOOOOOOOOOOOOO",
-        "aAAOAAaAAaAAaOAA",
-        "aAAOAAaGGaAAaOAA",
-        "aaaOaaaaaaaaaOaa",
-        "OOOOOOOOOOOOOOOO",
-        "AAaAAaAOaAAaAAaO",
-        "AAaAAaAOaAAaGGaO",
-        "aaaaaaaOaaaaaaaa",
-        "OOOOOOOOOOOOOOOO",
-        "aAAOAAaAAaAAaOAA",
-        "aAAOAAaAAaAAaOAA",
-        "wwwOwwwwwwwwwOww",
-        "OOOOOOOOOOOOOOOO",
+        "AAaAAaAwaAAaAAaw",
+        "AAaGGaAwaAAaAAaw",
+        "aaaaaaawaaaaaaaa",
+        "wwwwwwwwwwwwwwww",
+        "aAAwAAaAAaAAawAA",
+        "aAAwAAaGGaAAawAA",
+        "aaawaaaaaaaaawaa",
+        "wwwwwwwwwwwwwwww",
+        "AAaAAaAwaAAaAAaw",
+        "AAaAAaAwaAAaGGaw",
+        "aaaaaaawaaaaaaaa",
+        "wwwwwwwwwwwwwwww",
+        "aAAwAAaAAaAAawAA",
+        "aAAwAAaAAaAAawAA",
+        "aaawaaaaaaaaawaa",
+        "wwwwwwwwwwwwwwww",
     ])
     # 6: Ornate relief frieze block
     put_tile(6, 0, [
@@ -1237,6 +1245,96 @@ def build_wall_sconce(phase: int) -> Image.Image:
     return grid_to_image(g)
 
 
+def build_golden_shikhara() -> Image.Image:
+    """48x64 ornate golden Kalinga shikhara temple tower for gameplay rooftop skylines."""
+    g = blank_grid(48, 64, ".")
+    # Kalasha spire (y=1..7)
+    g[1][23] = "S"; g[1][24] = "S"
+    g[2][23] = "B"; g[2][24] = "B"
+    for x in range(22, 26):
+        g[3][x] = "S" if x in (23, 24) else "B"
+    for x in range(20, 28):
+        g[4][x] = "B" if x in (22, 23, 24, 25) else "G"
+    for x in range(18, 30):
+        g[5][x] = "S" if x % 2 == 0 else "G"
+    for x in range(20, 28):
+        g[6][x] = "g"
+
+    # Tiered golden shikhara body (y=7..55)
+    for y in range(7, 56):
+        dy = y - 7
+        half = min(19, int(5 + (dy ** 0.72) * 1.05))
+        tier = (dy % 6 == 0)
+        if tier and dy > 3:
+            half = max(4, half - 1)
+        for dx in range(-half, half + 1):
+            x = 24 + dx
+            rib = (abs(dx) % 5 == 0)
+            if tier:
+                g[y][x] = "S" if dx <= 0 else "B"
+            elif dx == -half:
+                g[y][x] = "S"
+            elif dx == half:
+                g[y][x] = "g"
+            elif rib:
+                g[y][x] = "B" if dx <= 0 else "g"
+            else:
+                g[y][x] = "B" if dx < -2 else ("G" if dx < 6 else "g")
+
+    # Ornate arched entrance & cornice base (y=56..63)
+    for y in range(56, 64):
+        for x in range(4, 44):
+            if y == 56:
+                g[y][x] = "S"
+            elif y == 57:
+                g[y][x] = "B"
+            elif 19 <= x <= 28 and y >= 58:
+                g[y][x] = "d" if (y == 58 or x in (19, 28)) else "w"
+            else:
+                g[y][x] = "G" if x % 3 != 0 else "g"
+
+    g = apply_ink_outline(g, "O")
+    return grid_to_image(g)
+
+
+def build_golden_roof_dome() -> Image.Image:
+    """48x32 curved ribbed golden palace roof with upturned eaves (ref_gameplay.png)."""
+    g = blank_grid(48, 32, ".")
+    # Top ridge & kalasha finial
+    g[1][23] = "S"; g[1][24] = "S"
+    g[2][22] = "B"; g[2][23] = "S"; g[2][24] = "S"; g[2][25] = "B"
+    # Sloped curved ribbed roof (y=3..24)
+    for y in range(3, 25):
+        dy = y - 3
+        half = min(22, 3 + dy)
+        for dx in range(-half, half + 1):
+            x = 24 + dx
+            rib = (abs(dx) % 4 == 0)
+            if y == 3:
+                g[y][x] = "S"
+            elif y >= 22:
+                g[y][x] = "S" if y == 22 else ("B" if y == 23 else "g")
+            elif rib:
+                g[y][x] = "g"
+            else:
+                g[y][x] = "S" if dx < -half // 2 else ("B" if dx < half // 2 else "G")
+    # Upturned wing finials at x=1..2 and x=45..46
+    g[20][1] = "S"; g[21][1] = "B"; g[21][2] = "S"
+    g[20][46] = "B"; g[21][46] = "G"; g[21][45] = "B"
+    # Lower carved frieze under eave (y=25..31)
+    for y in range(25, 32):
+        for x in range(4, 44):
+            if y in (25, 31):
+                g[y][x] = "g"
+            elif y == 27 and x % 4 == 0:
+                g[y][x] = "B"
+            else:
+                g[y][x] = "a" if x % 2 == 0 else "W"
+
+    g = apply_ink_outline(g, "O")
+    return grid_to_image(g)
+
+
 def build_props_lanka() -> None:
     frames: list[tuple[Image.Image, int]] = [
         (build_torana_arch(), 200),
@@ -1247,12 +1345,16 @@ def build_props_lanka() -> None:
         (build_wall_sconce(0), 125),
         (build_wall_sconce(1), 125),
         (build_wall_sconce(2), 125),
+        (build_golden_shikhara(), 200),
+        (build_golden_roof_dome(), 200),
     ]
     tags = [
         ("torana_arch", 0, 0),
         ("sacred_shrine", 1, 1),
         ("brass_diya", 2, 4),
         ("wall_sconce", 5, 7),
+        ("golden_shikhara", 8, 8),
+        ("golden_roof_dome", 9, 9),
     ]
     save_aseprite_sheet(
         "props_lanka",
@@ -1279,30 +1381,31 @@ def build_hanuman_frame(
 ) -> Image.Image:
     g = blank_grid(48, 32, ".")
     cx = 24 + bx_off
-    by = 6 + by_off
+    # Stocky heroic vanara proportions (~24px tall):
+    # Head (y=8..15), Muscular Torso+Dhoti (y=16..24), Strong compact legs (y=25..31, 7px tall)
+    by = 8 + by_off
 
-    # 1. Blazing Tail & large roaring flame jet (matching ref_gameplay.png)
+    # 1. Blazing Tail & roaring flame jet (matching ref_gameplay.png)
     tail_curves = {
-        "up": [(21, 21), (18, 20), (16, 18), (15, 15), (15, 12), (16, 9), (18, 7)],
-        "up2": [(21, 21), (18, 20), (15, 17), (14, 14), (15, 11), (17, 8), (19, 6)],
-        "stream": [(21, 21), (18, 20), (15, 19), (12, 17), (10, 15), (9, 13), (8, 11)],
-        "stream2": [(21, 21), (18, 21), (15, 20), (12, 18), (9, 16), (8, 14), (7, 12)],
-        "jump": [(21, 21), (19, 20), (16, 18), (14, 15), (13, 12), (14, 9), (16, 7)],
-        "coil": [(21, 21), (18, 22), (15, 21), (14, 18), (14, 15), (15, 13), (17, 11)],
-        "whip1": [(25, 21), (29, 20), (33, 18), (37, 15), (40, 13), (43, 11), (45, 10)],
-        "whip2": [(25, 21), (30, 21), (34, 20), (38, 19), (41, 18), (44, 17), (46, 16)],
-        "recover": [(22, 21), (19, 19), (17, 16), (17, 13), (18, 10), (19, 8), (20, 6)],
+        "up": [(20, 22), (17, 21), (15, 19), (14, 16), (14, 13), (15, 10), (17, 8)],
+        "up2": [(20, 22), (17, 21), (14, 18), (13, 15), (14, 12), (16, 9), (18, 7)],
+        "stream": [(20, 22), (17, 21), (14, 20), (11, 18), (9, 16), (8, 14), (7, 12)],
+        "stream2": [(20, 22), (17, 22), (14, 21), (11, 19), (8, 17), (7, 15), (6, 13)],
+        "jump": [(20, 22), (18, 21), (15, 19), (13, 16), (12, 13), (13, 10), (15, 8)],
+        "coil": [(20, 22), (17, 23), (14, 22), (13, 19), (13, 16), (14, 14), (16, 12)],
+        "whip1": [(25, 22), (29, 21), (33, 19), (37, 16), (40, 14), (43, 12), (45, 11)],
+        "whip2": [(25, 22), (30, 22), (34, 21), (38, 20), (41, 19), (44, 18), (46, 17)],
+        "recover": [(21, 22), (18, 20), (16, 17), (16, 14), (17, 11), (18, 9), (19, 7)],
     }
     pts = tail_curves[tail_pose]
     for i, (tx, ty) in enumerate(pts):
         x, y = tx + bx_off, ty + by_off
         if 0 <= x < 48 and 0 <= y < 32:
-            # Cloth-wrapped tail tip
             g[y][x] = "I" if i >= 4 and i % 2 == 0 else ("g" if i >= 4 else "a")
             if y + 1 < 32:
                 g[y + 1][x] = "w" if i < 4 else "I"
 
-    # Flame plume at tail tip (stream backward or forward on whip)
+    # Flame plume at tail tip
     fx, fy = pts[-1][0] + bx_off, pts[-1][1] + by_off
     if tail_pose in ("stream", "stream2", "jump"):
         plumes = [
@@ -1331,7 +1434,7 @@ def build_hanuman_frame(
                 "....RFYR....",
             ],
         ]
-        stamp(g, plumes[flame_phase % 3], fx - 10, fy - 3)
+        stamp(g, plumes[flame_phase % 3], max(0, fx - 10), max(0, fy - 3))
     elif tail_pose in ("whip1", "whip2"):
         plumes = [
             ["RFYf", "fYYf", "RFYR"],
@@ -1344,112 +1447,111 @@ def build_hanuman_frame(
             [".f...", "CYfR.", "FfYf.", ".FYR."],
             ["..f..", ".YfF.", "CFfYR", ".RYC."],
         ]
-        stamp(g, plumes[flame_phase % 3], fx - 2, fy - 3)
+        stamp(g, plumes[flame_phase % 3], fx - 2, max(0, fy - 3))
 
-    # 2. Head & Mukuta Crown (8x8 around cx-3..cx+5, by..by+8)
+    # 2. Head & Conical Golden Mukuta Crown (8 rows, y = by..by+7)
     head = [
         "...S....",
         "..SBS...",
         ".gBGBg..",
         ".BSBSB..",
         "CAaaaA..",  # brow & crimson headband
-        ".AAfOAO.",  # snout + bright eye
+        ".AAfOAO.",  # vanara snout + bright eye
         "..AAAA..",
         "B.aaAa..",  # kundala earring & jaw
     ]
     stamp(g, head, cx - 3, by)
 
-    # 3. Torso, Yajnopavita, Dhoti & Royal Blue Waist Sash (#2457A6 'b')
+    # 3. Broad Muscular Chest, Yajnopavita, Royal Blue Sash & Crimson-Saffron Dhoti (9 rows, y = by+8..by+16)
     torso = [
-        "..AAaa..",
-        ".AAIAa..",  # chest + white sacred thread
+        ".AAAaa..",
+        "AAAIAAa.",  # broad chest + white sacred thread
+        "AAAaIAa.",
         ".AAaIA..",
-        "..AaIA..",
-        ".bBBBBb.",  # royal blue sash + gold belt
-        ".FFCCFF.",  # saffron/crimson dhoti
-        ".FcCCcF.",
+        ".AAAaA..",
+        ".bBBBBb.",  # royal blue sash (#2457A6) + gold belt
+        "bFFFFFFb",  # saffron-crimson dhoti wrap
+        "FcCCCCcF",
+        "FcC..CcF",
     ]
     stamp(g, torso, cx - 3, by + 8)
 
-    # 4. Arms
+    # 4. Muscular Arms with golden armlets/wristlets
     if arm_pose == "idle":
-        stamp(g, ["AB", "aB", "A."], cx - 5, by + 9)
-        stamp(g, ["BA", "Ba", ".A"], cx + 3, by + 9)
+        stamp(g, ["AB", "aB", "AA"], cx - 5, by + 9)
+        stamp(g, ["BA", "Ba", "AA"], cx + 4, by + 9)
     elif arm_pose == "run1":
-        stamp(g, ["A.", "Ba", ".a"], cx - 6, by + 8)
-        stamp(g, [".A", "AB", "A."], cx + 4, by + 8)
+        stamp(g, ["AA", "Ba", ".a"], cx - 6, by + 9)
+        stamp(g, [".A", "AB", "AA"], cx + 4, by + 8)
     elif arm_pose == "run2":
-        stamp(g, [".A", "Ba", "A."], cx + 4, by + 9)
-        stamp(g, ["A.", "AB", ".a"], cx - 6, by + 8)
+        stamp(g, [".A", "Ba", "AA"], cx + 4, by + 9)
+        stamp(g, ["AA", "AB", ".a"], cx - 6, by + 8)
     elif arm_pose == "jump":
-        stamp(g, ["A.", "Ba"], cx - 5, by + 7)
-        stamp(g, ["AB", "A."], cx + 4, by + 6)
+        stamp(g, ["AA", "Ba"], cx - 5, by + 7)
+        stamp(g, ["AB", "AA"], cx + 4, by + 6)
     elif arm_pose == "wall":
-        stamp(g, ["AA", "Ba", "A."], cx + 4, by + 7)
+        stamp(g, ["AA", "Ba", "AA"], cx + 4, by + 7)
         stamp(g, ["AB", "a."], cx - 5, by + 10)
     elif arm_pose == "whip":
         stamp(g, ["AB", "a."], cx - 5, by + 9)
-        stamp(g, ["AAB", "..A"], cx + 4, by + 9)
+        stamp(g, ["AAB", ".AA"], cx + 4, by + 9)
 
-    # 5. Legs (grounded poses reach y=31!)
-    ly = by + 15  # 21 + by_off -> 11 rows to reach 31! Let's make legs span to y=31 cleanly
+    # 5. Compact Muscular Vanara Legs (only 7 rows: y = by+17..by+23 = 25..31!)
+    ly = by + 17  # 25 + by_off
     if leg_pose == "idle":
+        # Wide athletic warrior stance, thick thighs/calves, golden anklets, feet at y=31
         legs = [
-            "Aa..aA",
-            "Aa..aA",
-            "Aa..aA",
-            "Aa..aA",
-            "AB..BA",
-            "AA..AA",
-            "AA..AA",
-            "AAA.AA",
+            "AAa..aAA",
+            "AAa..aAA",
+            "AaA..AaA",
+            "AB....BA",
+            "AA....AA",
+            "AAa..aAA",
         ]
-        stamp(g, legs, cx - 2, ly)
-        # Ensure y=30..31 feet contact
-        g[30][cx - 2] = "A"; g[31][cx - 2] = "A"; g[31][cx - 1] = "a"
-        g[30][cx + 2] = "A"; g[31][cx + 2] = "A"; g[31][cx + 3] = "a"
+        stamp(g, legs, cx - 3, ly)
+        g[30][cx - 3] = "A"; g[31][cx - 3] = "A"; g[31][cx - 2] = "A"; g[31][cx - 1] = "a"
+        g[30][cx + 2] = "A"; g[31][cx + 2] = "A"; g[31][cx + 3] = "A"; g[31][cx + 4] = "a"
     elif leg_pose == "run1":
+        # Athletic forward stride (compact, bent knees)
         legs = [
-            "aA....Aa",
-            "A......A",
+            "aAA..AAa",
+            "AA....AA",
             "B......B",
-            "A......A",
             "AA....AA",
             "AAA..AAA",
         ]
-        stamp(g, legs, cx - 3, ly)
-        g[30][cx - 3] = "A"; g[31][cx - 3] = "A"; g[31][cx - 2] = "a"
-        g[30][cx + 3] = "A"; g[31][cx + 3] = "A"; g[31][cx + 4] = "a"
-    elif leg_pose == "run2":
-        legs = [
-            ".AaAa.",
-            ".AaAa.",
-            ".ABBA.",
-            ".AAAA.",
-            ".AAAA.",
-            "AA..AA",
-        ]
-        stamp(g, legs, cx - 2, ly)
-        g[30][cx - 1] = "A"; g[31][cx - 1] = "A"; g[31][cx] = "a"
+        stamp(g, legs, cx - 4, ly)
+        g[30][cx - 4] = "A"; g[31][cx - 4] = "A"; g[31][cx - 3] = "a"
         g[30][cx + 2] = "A"; g[31][cx + 2] = "A"; g[31][cx + 3] = "a"
-    elif leg_pose == "jump":
-        # Tucked front knee, extended back leg (matching ref_gameplay.png)
+    elif leg_pose == "run2":
+        # Passing stride
         legs = [
-            "aA...AA",
-            "A....BA",
-            "B.....A",
-            "AA....a",
+            ".AAaaAA.",
+            ".AA..AA.",
+            ".AB..BA.",
+            ".AA..AA.",
+            "AAa..aAA",
         ]
         stamp(g, legs, cx - 3, ly)
+        g[30][cx - 2] = "A"; g[31][cx - 2] = "A"; g[31][cx - 1] = "a"
+        g[30][cx + 1] = "A"; g[31][cx + 1] = "A"; g[31][cx + 2] = "a"
+    elif leg_pose == "jump":
+        # Iconic ref_gameplay.png leap: front knee tucked up, back leg trailing cleanly
+        legs = [
+            "aA..AAAA",
+            "AA...ABA",
+            "B.....AA",
+            "AA......",
+        ]
+        stamp(g, legs, cx - 4, ly - 1)
     elif leg_pose == "fall":
         legs = [
-            "Aa..aA",
-            "Aa..aA",
-            "AB..BA",
-            "AA..AA",
-            "AA..AA",
+            "AAa..aAA",
+            "AB....BA",
+            "AA....AA",
+            "AAa..aAA",
         ]
-        stamp(g, legs, cx - 2, ly)
+        stamp(g, legs, cx - 3, ly)
 
     # 6. Sweeping Whip Fire Arc across 24x14 active hitbox zone
     if whip_arc == 1:
@@ -1460,7 +1562,7 @@ def build_hanuman_frame(
             "ffYYYFFRR..",
             "fYYFFRR....",
         ]
-        stamp(g, arc, 33, 10)
+        stamp(g, arc, 33, 11)
     elif whip_arc == 2:
         arc = [
             "....ffYYFFCC",
@@ -1470,7 +1572,7 @@ def build_hanuman_frame(
             "..ffFFRR....",
             "....CC......",
         ]
-        stamp(g, arc, 34, 14)
+        stamp(g, arc, 34, 15)
 
     if hurt_flash:
         for y in range(32):

@@ -273,9 +273,15 @@ def build_preview_verification(
         crop = img.crop((r["x"], r["y"], r["x"] + r["w"], r["y"] + r["h"]))
         scene.paste(crop, (dx, dy), crop)
 
+    paste_frame(props_img, props_data, "props_lanka 8.aseprite", 16, 48)   # golden_shikhara behind left parapet
+    paste_frame(props_img, props_data, "props_lanka 9.aseprite", 248, 80)  # golden_roof_dome behind right parapet
     paste_frame(props_img, props_data, "props_lanka 0.aseprite", 8, 64)    # torana_arch
     paste_frame(props_img, props_data, "props_lanka 1.aseprite", 200, 80)  # sacred_shrine
     paste_frame(props_img, props_data, "props_lanka 2.aseprite", 76, 96)   # brass_diya
+    paste_tile(9, 0, 2, 7)
+    paste_tile(9, 0, 3, 7)
+    paste_tile(9, 0, 16, 7)
+    paste_tile(9, 0, 17, 7)
 
     # Hanuman jumping with flame plume
     paste_frame(hanuman_img, hanuman_data, "hanuman 10.aseprite", 104, 82)

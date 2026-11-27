@@ -118,10 +118,75 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private buildDecorativeLandmarks(): void {
-    // Entry Torana Arch (Zone 1)
-    this.add.image(2 * TILE_SIZE, 12 * TILE_SIZE, 'props_lanka', 'props_lanka 0.aseprite')
-      .setOrigin(0, 1)
-      .setDepth(30);
+    const grid = this.levelDef.grid;
+
+    // ── Depth 25: Golden Shikhara Temples & Curved Golden Roof Domes behind terraces ──
+    const shikharas: [number, number][] = [
+      [10, 10], [21, 3], [43, 4], [55, 6], [71, 5], [89, 5], [133, 6], [149, 7],
+    ];
+    for (const [tx, ty] of shikharas) {
+      this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'props_lanka', 'props_lanka 8.aseprite')
+        .setOrigin(0.5, 1)
+        .setDepth(25);
+    }
+
+    const roofDomes: [number, number][] = [
+      [16, 10], [31, 6], [49, 6], [64, 5], [80, 4], [126, 6], [141, 6],
+    ];
+    for (const [tx, ty] of roofDomes) {
+      this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'props_lanka', 'props_lanka 9.aseprite')
+        .setOrigin(0.5, 1)
+        .setDepth(26);
+    }
+
+    // ── Depth 30: Torana Archways, Balustrades, Pillars, Jali Windows & Sconces ──
+    const toranaPositions: [number, number][] = [
+      [2, 12], [58, 7], [123, 7],
+    ];
+    for (const [tx, ty] of toranaPositions) {
+      this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'props_lanka', 'props_lanka 0.aseprite')
+        .setOrigin(0, 1)
+        .setDepth(30);
+    }
+
+    // Balustrade railings along open STONE parapet rooftops + jali windows & sconces on walls
+    for (let ty = 1; ty < this.levelDef.rows; ty++) {
+      for (let tx = 0; tx < this.levelDef.cols; tx++) {
+        const mat = grid[ty][tx];
+        const above = grid[ty - 1][tx];
+
+        if (mat === 'STONE' && above === 'EMPTY') {
+          // Place balustrade railing on flat stone roofs (skip enemy spawn spots & entry arch)
+          if (tx > 6 && tx < 154 && tx % 2 === 0 && (tx < 96 || tx > 112)) {
+            this.add.image(tx * TILE_SIZE, (ty - 1) * TILE_SIZE, 'tileset_lanka', 9)
+              .setOrigin(0, 0)
+              .setDepth(30);
+          }
+        }
+
+        // Jali lattice windows & wall sconces embedded in tall stone towers
+        if (mat === 'STONE' && ty >= 6 && ty <= 11 && above === 'STONE') {
+          if (tx % 9 === 0 && ty % 3 === 0) {
+            this.add.image(tx * TILE_SIZE, ty * TILE_SIZE, 'tileset_lanka', 4 * 16 + 7)
+              .setOrigin(0, 0)
+              .setDepth(41);
+          } else if (tx % 11 === 0 && ty === 8) {
+            const sconce = this.add.sprite(tx * TILE_SIZE + 8, ty * TILE_SIZE + 8, 'props_lanka')
+              .setDepth(41);
+            sconce.play('props_lanka:wall_sconce');
+          }
+        }
+
+        // Hanging marigold vines along Ashoka Vatika & palace eaves
+        if ((mat === 'STONE' || mat === 'SACRED') && ty >= 3 && ty <= 6 && ty + 1 < this.levelDef.rows && grid[ty + 1][tx] === 'EMPTY') {
+          if (tx % 7 === 0) {
+            this.add.image(tx * TILE_SIZE, (ty + 1) * TILE_SIZE, 'tileset_lanka', 4 * 16 + 8)
+              .setOrigin(0, 0)
+              .setDepth(30);
+          }
+        }
+      }
+    }
 
     // Standing brass diyas along parapets
     const diyaPositions: [number, number][] = [
@@ -130,7 +195,7 @@ export class PlayScene extends Phaser.Scene {
     for (const [tx, ty] of diyaPositions) {
       const diya = this.add.sprite(tx * TILE_SIZE + 8, ty * TILE_SIZE, 'props_lanka')
         .setOrigin(0.5, 1)
-        .setDepth(30);
+        .setDepth(31);
       diya.play('props_lanka:brass_diya');
     }
 
@@ -139,15 +204,15 @@ export class PlayScene extends Phaser.Scene {
       .setOrigin(0, 1)
       .setDepth(30);
 
-    // Decorative golden pillars & jali windows on stone towers
+    // Decorative Hoysala/Golden pillars across palace terraces
     const pillarCols = [14, 33, 47, 74, 88, 128, 143];
     for (const tx of pillarCols) {
-      this.add.image(tx * TILE_SIZE, 11 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 3).setOrigin(0, 0).setDepth(30);
-      this.add.image(tx * TILE_SIZE, 10 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 4).setOrigin(0, 0).setDepth(30);
-      this.add.image(tx * TILE_SIZE, 9 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 5).setOrigin(0, 0).setDepth(30);
+      this.add.image(tx * TILE_SIZE, 11 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 3).setOrigin(0, 0).setDepth(41);
+      this.add.image(tx * TILE_SIZE, 10 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 4).setOrigin(0, 0).setDepth(41);
+      this.add.image(tx * TILE_SIZE, 9 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 5).setOrigin(0, 0).setDepth(41);
     }
 
-    // Sea-Cliff Exit Torana Arch (Zone 5, foreground/midground framing)
+    // Sea-Cliff Exit Torana Arch (Zone 5, foreground framing)
     const exitX = this.levelDef.exitTxMin * TILE_SIZE - 16;
     const exitY = 12 * TILE_SIZE;
     this.add.image(exitX, exitY, 'props_lanka', 'props_lanka 0.aseprite')
