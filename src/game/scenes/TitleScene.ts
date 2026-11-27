@@ -124,10 +124,11 @@ export class TitleScene extends Phaser.Scene {
       this.cleanupUnlockListeners();
 
       if (synth) {
+        synth.stopTitleTheme(0.25);
         synth.unlock().then(() => {
           synth.playMenuSelect();
+          synth.startGameplayTheme();
         });
-        synth.stopTitleTheme(); // smooth 0.4s fade-out into PlayScene
       }
       this.sound.unlock();
       const inputAdapter = this.registry.get('inputAdapter') as InputAdapter | undefined;

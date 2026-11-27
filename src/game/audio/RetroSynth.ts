@@ -1,7 +1,8 @@
-// src/game/audio/RetroSynth.ts — Procedural Web Audio API synthesizer & Master Bus
+// src/game/audio/RetroSynth.ts — Procedural Web Audio API Master Bus, Soundtrack & Retro SFX
 // Zero external audio file dependencies
 
-import { TitleThemePlayer } from './TitleTheme';
+import { SoundtrackEngine, type TrackId } from './SoundtrackEngine';
+import { SfxLimiter } from './sfxLimiter';
 
 const MUTE_STORAGE_KEY = 'lanka_dahan_muted';
 
@@ -9,7 +10,9 @@ export class RetroSynth {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private sfxGain: GainNode | null = null;
-  private titleTheme: TitleThemePlayer | null = null;
+  private noiseBuffer: AudioBuffer | null = null;
+  private engine: SoundtrackEngine | null = null;
+  private readonly sfxLimiter = new SfxLimiter();
   private muted = false;
   private unlocked = false;
 
@@ -35,11 +38,34 @@ export class RetroSynth {
         this.masterGain.gain.setValueAtTime(this.muted ? 0 : 1, this.ctx.currentTime);
         this.masterGain.connect(compressor);
 
-        this.sfxGain = this.ctx.createGain();
-        this.sfxGain.gain.setValueAtTime(0.30, this.ctx.currentTime);
-        this.sfxGain.connect(this.masterGain);
+        // Single pre-allocated 2-second mono white-noise buffer
+        const len = Math.floor(this.ctx.sampleRate * 2.0);
+        this.noiseBuffer = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+        const ch = this.noiseBuffer.getChannelData(0);
+        for (let i = 0; i < len; i++) {
+          ch[i] = Math.random() * 2 - 1;
+        }
 
-        this.titleTheme = new TitleThemePlayer(this.ctx, this.masterGain);
+        const makeBus = (gainVal: number): GainNode => {
+          const g = this.ctx!.createGain();
+          g.gain.setValueAtTime(gainVal, this.ctx!.currentTime);
+          g.connect(this.masterGain!);
+          return g;
+        };
+
+        this.sfxGain = makeBus(0.30);
+        this.engine = new SoundtrackEngine(
+          this.ctx,
+          {
+            lead: makeBus(0.42),
+            harmony: makeBus(0.34),
+            perc: makeBus(0.38),
+            drone: makeBus(0.20),
+            ambientFire: makeBus(0),
+          },
+          this.noiseBuffer,
+        );
+
         this.bindVisibilityLifecycle();
       }
     } catch {
@@ -59,7 +85,7 @@ export class RetroSynth {
     try {
       window.localStorage.setItem(MUTE_STORAGE_KEY, muted ? 'true' : 'false');
     } catch {
-      // Ignore storage errors (private mode / SSR)
+      // Ignore storage errors
     }
   }
 
@@ -68,7 +94,7 @@ export class RetroSynth {
     document.addEventListener('visibilitychange', () => {
       if (!this.ctx) return;
       if (document.hidden) {
-        this.titleTheme?.onHidden();
+        this.engine?.onHidden();
         if (this.ctx.state === 'running') {
           this.ctx.suspend().catch(() => { /* ignore */ });
         }
@@ -76,11 +102,11 @@ export class RetroSynth {
         if (this.ctx.state === 'suspended') {
           this.ctx.resume()
             .then(() => {
-              this.titleTheme?.onVisible();
+              this.engine?.onVisible();
             })
             .catch(() => { /* ignore */ });
         } else {
-          this.titleTheme?.onVisible();
+          this.engine?.onVisible();
         }
       }
     });
@@ -102,14 +128,48 @@ export class RetroSynth {
     this.unlocked = this.ctx.state === 'running';
   }
 
-  startTitleTheme(): boolean {
-    if (!this.titleTheme) return false;
-    return this.titleTheme.start();
+  // ─── Soundtrack Controls ──────────────────────────────────────────────────
+
+  playTrack(trackId: TrackId, prevFadeSec = 0.016): boolean {
+    return this.engine ? this.engine.play(trackId, prevFadeSec) : false;
   }
 
-  stopTitleTheme(): void {
-    this.titleTheme?.stop();
+  stopMusic(fadeSec = 0.016): void {
+    this.engine?.stop(fadeSec);
   }
+
+  getActiveTrackId(): TrackId | null {
+    return this.engine ? this.engine.getActiveTrackId() : null;
+  }
+
+  startTitleTheme(): boolean {
+    return this.playTrack('ashoka_vatika');
+  }
+
+  stopTitleTheme(fadeSec = 0.25): void {
+    if (this.engine?.getActiveTrackId() === 'ashoka_vatika') {
+      this.engine.stop(fadeSec);
+    }
+  }
+
+  startGameplayTheme(): boolean {
+    const started = this.playTrack('agni_tandav', 0.25);
+    if (started) {
+      this.engine?.playShankhAccent();
+    }
+    return started;
+  }
+
+  startVictoryTheme(): boolean {
+    this.setFireIntensity(0);
+    return this.playTrack('ayodhya_deepavali', 0.016);
+  }
+
+  setFireIntensity(intensity: number): void {
+    this.engine?.setFireIntensity(intensity);
+  }
+
+  // ─── Mute Controls ────────────────────────────────────────────────────────
 
   isMuted(): boolean {
     return this.muted;
@@ -129,6 +189,16 @@ export class RetroSynth {
   toggleMute(): boolean {
     this.setMuted(!this.muted);
     return this.muted;
+  }
+
+  // ─── SFX Helpers (with burst limiter) ─────────────────────────────────────
+
+  canTriggerSfx(eventKey: string): boolean {
+    return this.sfxLimiter.canTrigger(eventKey, performance.now());
+  }
+
+  resetSfxLimiter(): void {
+    this.sfxLimiter.reset();
   }
 
   private playTone(
@@ -164,18 +234,11 @@ export class RetroSynth {
   }
 
   private playNoise(duration: number, volume = 0.1): void {
-    if (!this.ctx || !this.sfxGain) return;
+    if (!this.ctx || !this.sfxGain || !this.noiseBuffer) return;
     if (!this.unlocked && this.ctx.state !== 'running') return;
 
-    const bufferSize = Math.floor(this.ctx.sampleRate * duration);
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-
     const source = this.ctx.createBufferSource();
-    source.buffer = buffer;
+    source.buffer = this.noiseBuffer;
 
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(volume, this.ctx.currentTime);
@@ -183,10 +246,10 @@ export class RetroSynth {
 
     source.connect(gain);
     gain.connect(this.sfxGain);
-    source.start(this.ctx.currentTime);
+    source.start(this.ctx.currentTime, 0, duration);
   }
 
-  // ─── Game SFX ─────────────────────────────────
+  // ─── Game SFX ─────────────────────────────────────────────────────────────
 
   playJump(): void {
     this.playTone(200, 0.15, 'square', 0.12, 400);
@@ -203,13 +266,15 @@ export class RetroSynth {
   }
 
   playIgnite(): void {
-    this.playNoise(0.2, 0.08);
-    this.playTone(800, 0.15, 'sawtooth', 0.06, -400);
+    if (!this.canTriggerSfx('TILE_IGNITED')) return;
+    this.playNoise(0.18, 0.08);
+    this.playTone(800, 0.14, 'sawtooth', 0.06, -400);
   }
 
   playCollapse(): void {
-    this.playNoise(0.3, 0.12);
-    this.playTone(100, 0.3, 'triangle', 0.1, -50);
+    if (!this.canTriggerSfx('TILE_COLLAPSED')) return;
+    this.playNoise(0.26, 0.12);
+    this.playTone(100, 0.28, 'triangle', 0.1, -50);
   }
 
   playHurt(): void {
@@ -236,15 +301,12 @@ export class RetroSynth {
   }
 
   playVictory(): void {
-    const notes = [523, 659, 784, 1047];
-    notes.forEach((freq, i) => {
-      setTimeout(() => {
-        this.playTone(freq, 0.3, 'square', 0.12);
-      }, i * 150);
-    });
+    this.startVictoryTheme();
   }
 
   playGameOver(): void {
+    this.setFireIntensity(0);
+    this.stopMusic(0.016);
     const notes = [400, 350, 300, 200];
     notes.forEach((freq, i) => {
       setTimeout(() => {

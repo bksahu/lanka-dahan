@@ -9,6 +9,7 @@ import {
   MAX_HEALTH,
 } from '../../core/constants';
 import type { LevelSnapshot } from '../../core/types';
+import type { RetroSynth } from '../audio/RetroSynth';
 
 export class HudScene extends Phaser.Scene {
   private healthText!: Phaser.GameObjects.Text;
@@ -69,8 +70,15 @@ export class HudScene extends Phaser.Scene {
     const playScene = this.scene.get('PlayScene');
     playScene.events.on('sim-update', this.onSimUpdate, this);
 
+    const onMuteKey = () => {
+      const synth = this.registry.get('synth') as RetroSynth | undefined;
+      synth?.toggleMute();
+    };
+    this.input.keyboard?.on('keydown-M', onMuteKey);
+
     this.events.once('shutdown', () => {
       playScene.events.off('sim-update', this.onSimUpdate, this);
+      this.input.keyboard?.off('keydown-M', onMuteKey);
     });
   }
 

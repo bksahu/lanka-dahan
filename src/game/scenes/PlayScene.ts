@@ -61,7 +61,26 @@ export class PlayScene extends Phaser.Scene {
     this.accumulator = 0;
     this.prevPlayerState = 'IDLE';
     this.endSoundPlayed = false;
-    (this.registry.get('synth') as RetroSynth | undefined)?.stopTitleTheme();
+    const synth = this.registry.get('synth') as RetroSynth | undefined;
+    if (synth) {
+      synth.resetSfxLimiter();
+      synth.setFireIntensity(0);
+      if (!synth.startGameplayTheme()) {
+        const resumeGameplayAudio = () => {
+          synth.unlock().then(() => {
+            if (this.scene.isActive('PlayScene') && this.sim.gameStatus === 'PLAYING') {
+              synth.startGameplayTheme();
+            }
+          });
+        };
+        window.addEventListener('pointerdown', resumeGameplayAudio, { once: true });
+        window.addEventListener('keydown', resumeGameplayAudio, { once: true });
+        this.events.once('shutdown', () => {
+          window.removeEventListener('pointerdown', resumeGameplayAudio);
+          window.removeEventListener('keydown', resumeGameplayAudio);
+        });
+      }
+    }
     (this.registry.get('inputAdapter') as InputAdapter | undefined)?.enableTouchControls();
     this.flameOverlays.clear();
     this.enemySprites.clear();
@@ -344,11 +363,16 @@ export class PlayScene extends Phaser.Scene {
     this.bgFarSpires.tilePositionX = camX * 0.15;
     this.bgMidPalace.tilePositionX = camX * 0.35;
 
-    // Subtle warm fire glow near dense active fires
-    const fireAlpha = Math.min(0.08, this.flameOverlays.size * 0.004);
+    // Subtle warm fire glow & dynamic ambient fire bed scaled by active BURNING tiles
+    const activeBurning = this.flameOverlays.size;
+    const fireAlpha = Math.min(0.08, activeBurning * 0.004);
     this.fireGlowOverlay.setAlpha(
       fireAlpha * (0.85 + 0.15 * Math.sin(this.time.now / 90)),
     );
+    const synth = this.registry.get('synth') as RetroSynth | undefined;
+    if (synth && this.sim.gameStatus === 'PLAYING') {
+      synth.setFireIntensity(Math.min(1, activeBurning / 12));
+    }
   }
 
   private spawnEmberBurst(wx: number, wy: number, count: number, debris = false): void {
