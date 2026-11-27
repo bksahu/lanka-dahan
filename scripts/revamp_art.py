@@ -1407,25 +1407,29 @@ HANUMAN_ARM_STAMPS: dict[str, tuple[tuple[int, int, tuple[str, ...]], tuple[int,
         (-6, 1, ("sS", "LG", "SS")),
         (4, 1, ("Ss", "GL", "SS")),
     ),
-    "run1": (
+    "run_a": (
         (-6, 1, ("SS.", "LGs", "SS.")),
         (4, 0, ("Ss.", "SGL", ".SS")),
     ),
-    "run2": (
+    "run_b": (
         (-6, 0, (".SS", "sGL", "SS.")),
         (4, 1, ("SS.", "LGS", ".sS")),
     ),
+    "run_c": (
+        (-6, 1, ("sS.", "GSL", ".SS")),
+        (4, 1, ("SS.", "SGL", "SS.")),
+    ),
     "jump": (
         (-6, 1, ("SS.", "LG.")),
-        (4, -2, (".LS", "SGS", "SS.")),
+        (5, -1, ("LS", "GS", "SS")),
     ),
     "fall": (
         (-6, 0, ("LS.", "SSs")),
-        (4, -1, (".SL", "GSS")),
+        (5, 0, ("SL", "GS")),
     ),
     "wall": (
         (-6, 2, ("sS", "LG", "SS")),
-        (4, -1, ("SS.", "SGL", "SS.")),
+        (5, 0, ("SS", "GL", "SS")),
     ),
     "whip": (
         (-6, 1, ("sS", "LG")),
@@ -1455,7 +1459,17 @@ HANUMAN_LEG_STAMPS: dict[str, tuple[int, int, tuple[str, ...]]] = {
         "SSs....sSS",
         "SSSs..sSSS",
     )),
-    "run2": (-4, 8, (
+    "run2": (-5, 8, (
+        ".SSS..SSS.",
+        ".SSS..SSS.",
+        "..SSs.sSS.",
+        ".SSs...sSS",
+        ".LLs...sLL",
+        ".SS.....SS",
+        ".SSs...sSS",
+        "..SSs..sSS",
+    )),
+    "run3": (-4, 8, (
         "SSS..SSS",
         "SSS..SSS",
         "SSs..sSS",
@@ -1463,7 +1477,17 @@ HANUMAN_LEG_STAMPS: dict[str, tuple[int, int, tuple[str, ...]]] = {
         ".LL..LL.",
         ".SS..SS.",
         "SSs..sSS",
-        "SSs..sSS",
+        "SSSs.sSS",
+    )),
+    "run4": (-5, 8, (
+        ".SSS..SSS.",
+        ".SSS..SSS.",
+        ".SSs.sSS..",
+        "SSs...sSS.",
+        "LLs...sLL.",
+        "SS.....SS.",
+        "SSs...sSS.",
+        "SSs..sSS..",
     )),
     "jump": (-5, 8, (
         "SSSS.SSSS.",
@@ -1701,20 +1725,20 @@ def build_hanuman_frame(
     return legend_grid_to_image(g)
 
 
-# Animation Pose Offset Tables (no blind polygon overrides!)
+# Animation Pose Offset Tables (locked body center -> smooth limb/tail deltas in [3%, 45%])
 HANUMAN_POSES: list[tuple[str, int, dict]] = [
     # idle (4f @ 6 FPS)
     ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up", "flame_phase": 0, "grounded": True}),
     ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 1, "grounded": True}),
     ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up", "flame_phase": 2, "grounded": True}),
     ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 0, "grounded": True}),
-    # run (6f @ 12 FPS)
-    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run1", "leg_pose": "run1", "tail_pose": "stream", "flame_phase": 0, "grounded": True}),
-    ("run", 83, {"bx_off": 1, "by_off": -1, "arm_pose": "run2", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 1, "grounded": False}),
-    ("run", 83, {"bx_off": 1, "by_off": 0, "arm_pose": "run1", "leg_pose": "run1", "tail_pose": "stream", "flame_phase": 2, "grounded": True}),
-    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run2", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 0, "grounded": True}),
-    ("run", 83, {"bx_off": 1, "by_off": -1, "arm_pose": "run1", "leg_pose": "run1", "tail_pose": "stream", "flame_phase": 1, "grounded": False}),
-    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run2", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 2, "grounded": True}),
+    # run (6f @ 12 FPS — locked anchor, cycling legs/arms/jet smoothly)
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_a", "leg_pose": "run1", "tail_pose": "stream", "flame_phase": 0, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_c", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 1, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_b", "leg_pose": "run3", "tail_pose": "stream", "flame_phase": 2, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_b", "leg_pose": "run4", "tail_pose": "stream2", "flame_phase": 0, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_c", "leg_pose": "run3", "tail_pose": "stream", "flame_phase": 1, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_a", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 2, "grounded": True}),
     # jump (2f @ 10 FPS)
     ("jump", 100, {"bx_off": 0, "by_off": -1, "arm_pose": "jump", "leg_pose": "jump", "tail_pose": "stream", "flame_phase": 0, "grounded": False}),
     ("jump", 100, {"bx_off": 0, "by_off": -1, "arm_pose": "jump", "leg_pose": "jump", "tail_pose": "stream2", "flame_phase": 1, "grounded": False}),
@@ -1724,14 +1748,14 @@ HANUMAN_POSES: list[tuple[str, int, dict]] = [
     # wall_slide (2f @ 8 FPS)
     ("wall_slide", 125, {"bx_off": 1, "by_off": 0, "arm_pose": "wall", "leg_pose": "fall", "tail_pose": "up", "flame_phase": 0, "grounded": False}),
     ("wall_slide", 125, {"bx_off": 1, "by_off": 0, "arm_pose": "wall", "leg_pose": "fall", "tail_pose": "up2", "flame_phase": 1, "grounded": False}),
-    # tail_whip (4f @ 60ms)
-    ("tail_whip", 60, {"bx_off": -2, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "coil", "flame_phase": 0, "grounded": True}),
-    ("tail_whip", 60, {"bx_off": 1, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "whip1", "flame_phase": 1, "whip_arc": 1, "grounded": True}),
-    ("tail_whip", 60, {"bx_off": 2, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "whip2", "flame_phase": 0, "whip_arc": 2, "grounded": True}),
+    # tail_whip (4f @ 60ms — locked body, progressive sweeping flame whip)
+    ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "coil", "flame_phase": 0, "grounded": True}),
+    ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "whip1", "flame_phase": 1, "whip_arc": 1, "grounded": True}),
+    ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "whip2", "flame_phase": 0, "whip_arc": 2, "grounded": True}),
     ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "recover", "flame_phase": 2, "grounded": True}),
     # hurt (2f @ 100ms)
     ("hurt", 100, {"bx_off": -1, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "coil", "flame_phase": 0, "hurt_flash": True, "grounded": True}),
-    ("hurt", 100, {"bx_off": -2, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 1, "hurt_flash": False, "grounded": True}),
+    ("hurt", 100, {"bx_off": -1, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 1, "hurt_flash": False, "grounded": True}),
 ]
 
 
@@ -1810,15 +1834,29 @@ RAKSHASA_LEG_STAMPS: dict[str, tuple[str, ...]] = {
         "23....32",
         "233..332",
     ),
+    "step_b": (
+        "332..233",
+        "332..233",
+        "23....32",
+        "Lg....gL",
+        "32....23",
+        "32....23",
+        "33....33",
+        ".32..23.",
+        ".32..23.",
+        ".33..33.",
+        "233..332",
+        "332..233",
+    ),
 }
 
 RAKSHASA_POSES: list[tuple[str, int, str, int, int, int]] = [
-    # (tag, duration_ms, leg_key, dx, dy, phase)
+    # (tag, duration_ms, leg_key, dx, dy, phase — steady core anchor for smooth deltas)
     ("idle", 200, "idle", 0, 0, 0),
-    ("idle", 200, "idle", 0, 1, 1),
+    ("idle", 200, "idle", 0, 0, 1),
     ("patrol", 120, "idle", 0, 0, 0),
-    ("patrol", 120, "stride", 1, 0, 1),
-    ("patrol", 120, "idle", 1, 0, 2),
+    ("patrol", 120, "stride", 0, 0, 1),
+    ("patrol", 120, "step_b", 0, 0, 2),
     ("patrol", 120, "stride", 0, 0, 3),
     ("aim", 140, "idle", 0, 0, 0),
     ("aim", 140, "idle", 0, 0, 1),
@@ -1851,7 +1889,6 @@ def build_guard_frame(pose: str = "idle", phase: int = 0, leg_key: str = "idle",
             "gL.",
             ".L.",
         ), bx, oy + 6)
-        # Arrow connected across bow hand
         for ax in range(ox + 6, min(31, bx + 5)):
             g[oy + 8][ax] = "W"
         if phase == 1 and bx + 5 < 31:
@@ -1863,17 +1900,17 @@ def build_guard_frame(pose: str = "idle", phase: int = 0, leg_key: str = "idle",
         stamp_legend(g, (".L.", "gL.", "gL.", "gL.", ".L."), bx, oy + 6)
         g[oy + 8][min(30, bx + 3)] = "H"
     else:
-        # Held golden spear braced right from shoulder/waist at ox+8 up & down 4-connected
+        # Held golden spear with subtle idle/patrol bob keeping body grounded
         sx = ox + 8
-        for sy in range(max(2, oy - 1), min(30, oy + 20)):
-            if sy <= oy + 1:
+        spear_lift = -1 if ((pose == "idle" and phase == 1) or (pose == "patrol" and phase % 2 == 1)) else 0
+        for sy in range(max(2, oy - 1 + spear_lift), min(30, oy + 20 + spear_lift)):
+            if sy <= oy + 1 + spear_lift:
                 g[sy][sx + 1] = "H"
                 g[sy][sx] = "L"
-            elif sy <= oy + 3:
+            elif sy <= oy + 3 + spear_lift:
                 g[sy][sx] = "L"
             else:
                 g[sy][sx] = "g"
-        # Connect hand at shoulder level (oy + 8)
         g[oy + 8][ox + 7] = "L"
 
     if pose == "knockback" and phase == 0:

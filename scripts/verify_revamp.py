@@ -482,8 +482,9 @@ def compose_scene_1x(
     paste_tile(3, 3, 13, 8)
     paste_tile(1, 3, 14, 8)
     for tx in range(11, 15):
-        for ty in range(9, 12):
-            paste_tile(1 if tx in (11, 14) else 2, 3, tx, ty)
+        paste_tile(1 if tx in (11, 14) else 2, 3, tx, 9)
+        for ty in range(10, 12):
+            paste_tile(1 if tx in (11, 14) else 3, 3, tx, ty)
 
     paste_tile(0, 2, 4, 6)
     paste_tile(1, 2, 5, 6)

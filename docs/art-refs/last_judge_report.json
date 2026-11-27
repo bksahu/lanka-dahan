@@ -1,70 +1,30 @@
 {
   "scores": {
     "hanuman_identity": 10.0,
-    "cross_frame_consistency": 7.96,
+    "cross_frame_consistency": 8.68,
     "architecture_and_tiles": 9.89,
     "scene_composition_and_contrast": 10.0
   },
   "overall_pass": false,
   "blocking_defects": [
     {
-      "target": "hanuman:run_0",
-      "issue": "Consecutive frame delta 65.4% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
       "target": "hanuman:run_1",
-      "issue": "Consecutive frame delta 69.6% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "hanuman:run_2",
-      "issue": "Consecutive frame delta 76.8% outside smooth [3%, 45%] range",
+      "issue": "Consecutive frame delta 45.0% outside smooth [3%, 45%] range",
       "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
     },
     {
       "target": "hanuman:run_3",
-      "issue": "Consecutive frame delta 82.0% outside smooth [3%, 45%] range",
+      "issue": "Consecutive frame delta 47.5% outside smooth [3%, 45%] range",
       "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
     },
     {
       "target": "hanuman:run_4",
-      "issue": "Consecutive frame delta 81.4% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "hanuman:tail_whip_0",
-      "issue": "Consecutive frame delta 91.6% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "hanuman:tail_whip_1",
-      "issue": "Consecutive frame delta 78.6% outside smooth [3%, 45%] range",
+      "issue": "Consecutive frame delta 46.0% outside smooth [3%, 45%] range",
       "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
     },
     {
       "target": "hanuman:tail_whip_2",
-      "issue": "Consecutive frame delta 88.7% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "hanuman:hurt_0",
-      "issue": "Consecutive frame delta 75.3% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "rakshasa_guard:idle_0",
-      "issue": "Consecutive frame delta 51.8% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "rakshasa_guard:patrol_0",
-      "issue": "Consecutive frame delta 82.3% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "rakshasa_guard:patrol_2",
-      "issue": "Consecutive frame delta 82.3% outside smooth [3%, 45%] range",
+      "issue": "Consecutive frame delta 45.8% outside smooth [3%, 45%] range",
       "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
     }
   ]
