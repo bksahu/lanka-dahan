@@ -1,4 +1,4 @@
-// src/game/scenes/TitleScene.ts — Title screen showcasing Svarna Lanka vista
+// src/game/scenes/TitleScene.ts — Title screen showcasing Svarna Lanka vista & Ashoka Vatika theme
 
 import Phaser from 'phaser';
 import { CANVAS_WIDTH } from '../../core/constants';
@@ -8,7 +8,9 @@ import { RetroSynth } from '../audio/RetroSynth';
 export class TitleScene extends Phaser.Scene {
   private startPrompt!: Phaser.GameObjects.Text;
   private moonGlow!: Phaser.GameObjects.Arc;
+  private muteLabel!: Phaser.GameObjects.Text;
   private started = false;
+  private unlockCleanup: (() => void) | null = null;
 
   constructor() {
     super({ key: 'TitleScene' });
@@ -16,6 +18,7 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     this.started = false;
+    const synth = this.registry.get('synth') as RetroSynth | undefined;
 
     // 320x180 Svarna Lanka Trikuta Mountain vista
     this.add.image(0, 0, 'bg_title_lanka').setOrigin(0, 0);
@@ -54,6 +57,44 @@ export class TitleScene extends Phaser.Scene {
       strokeThickness: 2,
     });
 
+    // Accessible Mute/Unmute toggle in top-right sky
+    const muteBg = this.add.rectangle(CANVAS_WIDTH - 8, 10, 56, 14, 0x090b17, 0.78)
+      .setOrigin(1, 0)
+      .setStrokeStyle(1, 0x4b6d8a)
+      .setInteractive({ useHandCursor: true });
+
+    this.muteLabel = this.add.text(
+      CANVAS_WIDTH - 36,
+      17,
+      synth?.isMuted() ? 'SOUND OFF' : 'SOUND ON',
+      {
+        fontFamily: 'monospace',
+        fontSize: '6px',
+        color: synth?.isMuted() ? '#9aa1b5' : '#ffe680',
+      },
+    ).setOrigin(0.5);
+
+    const toggleMute = (
+      _pointer?: Phaser.Input.Pointer,
+      _lx?: number,
+      _ly?: number,
+      event?: Phaser.Types.Input.EventData,
+    ) => {
+      event?.stopPropagation();
+      if (!synth) return;
+      synth.unlock().then(() => {
+        if (!this.started && this.scene.isActive('TitleScene')) {
+          synth.startTitleTheme();
+        }
+      });
+      const muted = synth.toggleMute();
+      this.muteLabel.setText(muted ? 'SOUND OFF' : 'SOUND ON');
+      this.muteLabel.setColor(muted ? '#9aa1b5' : '#ffe680');
+    };
+
+    muteBg.on('pointerdown', toggleMute);
+    this.input.keyboard?.on('keydown-M', () => toggleMute());
+
     // Prompt pill at bottom center
     this.add.rectangle(CANVAS_WIDTH / 2, 152, 176, 16, 0x090b17, 0.78)
       .setStrokeStyle(1, 0xc78028);
@@ -74,13 +115,19 @@ export class TitleScene extends Phaser.Scene {
       strokeThickness: 2,
     }).setOrigin(0.5);
 
+    // Attempt to start Ashoka Vatika theme immediately; if suspended, unlock on first gesture
+    this.tryStartTitleAudio(synth);
+
     const startGame = () => {
       if (this.started) return;
       this.started = true;
-      const synth = this.registry.get('synth') as RetroSynth | undefined;
+      this.cleanupUnlockListeners();
+
       if (synth) {
-        synth.unlock();
-        synth.playMenuSelect();
+        synth.unlock().then(() => {
+          synth.playMenuSelect();
+        });
+        synth.stopTitleTheme(); // smooth 0.4s fade-out into PlayScene
       }
       this.sound.unlock();
       const inputAdapter = this.registry.get('inputAdapter') as InputAdapter | undefined;
@@ -93,6 +140,38 @@ export class TitleScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-SPACE', startGame);
     this.input.keyboard?.on('keydown-ENTER', startGame);
     this.input.on('pointerdown', startGame);
+
+    this.events.once('shutdown', () => {
+      this.cleanupUnlockListeners();
+    });
+  }
+
+  private tryStartTitleAudio(synth: RetroSynth | undefined): void {
+    if (!synth) return;
+    if (synth.startTitleTheme()) return;
+
+    const onGesture = () => {
+      this.cleanupUnlockListeners();
+      synth.unlock().then(() => {
+        if (!this.started && this.scene.isActive('TitleScene')) {
+          synth.startTitleTheme();
+        }
+      });
+    };
+
+    window.addEventListener('pointerdown', onGesture, { once: true });
+    window.addEventListener('keydown', onGesture, { once: true });
+    this.unlockCleanup = () => {
+      window.removeEventListener('pointerdown', onGesture);
+      window.removeEventListener('keydown', onGesture);
+      this.unlockCleanup = null;
+    };
+  }
+
+  private cleanupUnlockListeners(): void {
+    if (this.unlockCleanup) {
+      this.unlockCleanup();
+    }
   }
 
   update(): void {

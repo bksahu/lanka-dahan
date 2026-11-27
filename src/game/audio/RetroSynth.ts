@@ -1,33 +1,134 @@
-// src/game/audio/RetroSynth.ts — Procedural Web Audio API retro chiptune synthesizer
+// src/game/audio/RetroSynth.ts — Procedural Web Audio API synthesizer & Master Bus
 // Zero external audio file dependencies
+
+import { TitleThemePlayer } from './TitleTheme';
+
+const MUTE_STORAGE_KEY = 'lanka_dahan_muted';
 
 export class RetroSynth {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private sfxGain: GainNode | null = null;
+  private titleTheme: TitleThemePlayer | null = null;
+  private muted = false;
   private unlocked = false;
 
   constructor() {
+    this.muted = this.readMutePref();
+
     try {
       const AudioCtx =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
+
+        const compressor = this.ctx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-6, this.ctx.currentTime);
+        compressor.knee.setValueAtTime(6, this.ctx.currentTime);
+        compressor.ratio.setValueAtTime(12, this.ctx.currentTime);
+        compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
+        compressor.release.setValueAtTime(0.12, this.ctx.currentTime);
+        compressor.connect(this.ctx.destination);
+
         this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.value = 0.3;
-        this.masterGain.connect(this.ctx.destination);
+        this.masterGain.gain.setValueAtTime(this.muted ? 0 : 1, this.ctx.currentTime);
+        this.masterGain.connect(compressor);
+
+        this.sfxGain = this.ctx.createGain();
+        this.sfxGain.gain.setValueAtTime(0.30, this.ctx.currentTime);
+        this.sfxGain.connect(this.masterGain);
+
+        this.titleTheme = new TitleThemePlayer(this.ctx, this.masterGain);
+        this.bindVisibilityLifecycle();
       }
     } catch {
       // AudioContext not available
     }
   }
 
-  unlock(): void {
-    if (this.unlocked || !this.ctx) return;
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => { /* ignore */ });
+  private readMutePref(): boolean {
+    try {
+      return window.localStorage.getItem(MUTE_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
     }
-    this.unlocked = true;
+  }
+
+  private writeMutePref(muted: boolean): void {
+    try {
+      window.localStorage.setItem(MUTE_STORAGE_KEY, muted ? 'true' : 'false');
+    } catch {
+      // Ignore storage errors (private mode / SSR)
+    }
+  }
+
+  private bindVisibilityLifecycle(): void {
+    if (typeof document === 'undefined') return;
+    document.addEventListener('visibilitychange', () => {
+      if (!this.ctx) return;
+      if (document.hidden) {
+        this.titleTheme?.onHidden();
+        if (this.ctx.state === 'running') {
+          this.ctx.suspend().catch(() => { /* ignore */ });
+        }
+      } else {
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume()
+            .then(() => {
+              this.titleTheme?.onVisible();
+            })
+            .catch(() => { /* ignore */ });
+        } else {
+          this.titleTheme?.onVisible();
+        }
+      }
+    });
+  }
+
+  isSuspended(): boolean {
+    return !this.ctx || this.ctx.state === 'suspended';
+  }
+
+  async unlock(): Promise<void> {
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') {
+      try {
+        await this.ctx.resume();
+      } catch {
+        // Ignore resume failure prior to user gesture
+      }
+    }
+    this.unlocked = this.ctx.state === 'running';
+  }
+
+  startTitleTheme(): boolean {
+    if (!this.titleTheme) return false;
+    return this.titleTheme.start();
+  }
+
+  stopTitleTheme(): void {
+    this.titleTheme?.stop();
+  }
+
+  isMuted(): boolean {
+    return this.muted;
+  }
+
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    this.writeMutePref(muted);
+    if (this.ctx && this.masterGain) {
+      const now = this.ctx.currentTime;
+      this.masterGain.gain.cancelScheduledValues(now);
+      this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+      this.masterGain.gain.linearRampToValueAtTime(muted ? 0 : 1, now + 0.02);
+    }
+  }
+
+  toggleMute(): boolean {
+    this.setMuted(!this.muted);
+    return this.muted;
   }
 
   private playTone(
@@ -37,7 +138,8 @@ export class RetroSynth {
     volume = 0.15,
     freqSlide = 0,
   ): void {
-    if (!this.ctx || !this.masterGain) return;
+    if (!this.ctx || !this.sfxGain) return;
+    if (!this.unlocked && this.ctx.state !== 'running') return;
 
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -55,14 +157,15 @@ export class RetroSynth {
     gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
 
     osc.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.sfxGain);
 
     osc.start(this.ctx.currentTime);
     osc.stop(this.ctx.currentTime + duration);
   }
 
   private playNoise(duration: number, volume = 0.1): void {
-    if (!this.ctx || !this.masterGain) return;
+    if (!this.ctx || !this.sfxGain) return;
+    if (!this.unlocked && this.ctx.state !== 'running') return;
 
     const bufferSize = Math.floor(this.ctx.sampleRate * duration);
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -79,7 +182,7 @@ export class RetroSynth {
     gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
 
     source.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.sfxGain);
     source.start(this.ctx.currentTime);
   }
 
