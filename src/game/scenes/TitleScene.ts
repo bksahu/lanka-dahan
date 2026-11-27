@@ -26,12 +26,6 @@ export class TitleScene extends Phaser.Scene {
     // Subtle moon shimmer halo near top-right full moon
     this.moonGlow = this.add.circle(265, 30, 18, 0xf2f6fc, 0.08);
 
-    // Animated brass diyas flanking the prompt
-    const leftDiya = this.add.sprite(56, 156, 'props_lanka').setOrigin(0.5, 1);
-    leftDiya.play('props_lanka:brass_diya');
-    const rightDiya = this.add.sprite(264, 156, 'props_lanka').setOrigin(0.5, 1);
-    rightDiya.play('props_lanka:brass_diya');
-
     // Title placed in clean upper-left sky negative space
     this.add.text(12, 12, 'LANKA DAHAN', {
       fontFamily: 'monospace',

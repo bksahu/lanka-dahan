@@ -748,24 +748,24 @@ def build_tileset_lanka() -> None:
     ])
 
     # ── Row 3: SACRED (cols 0..7) ─────────────────────────────────────────────
-    # 0: White marble roof with carved lotus dome cap
+    # 0: Flat sunlit white marble terrace slab with delicate lotus trim (clean walkable floor)
     put_tile(0, 3, [
-        ".......OO.......",
-        "......OHHO......",
-        ".....OHIIHO.....",
-        "....OHIIIIHO....",
-        "...OHPIIIIPHO...",
-        "..OHIIIIIIIIHO..",
-        ".OIIIIIIIIIIIIO.",
+        "OOOOOOOOOOOOOOOO",
         "HHHHHHHHHHHHHHHH",
         "IIIIIIIIIIIIIIII",
-        "IPIIIIIIIIIIIIPI",
-        "IIPIISSIIISSIPII",
+        "IIHIIIIIIHIIIIII",
+        "IIIIIIIIIIIIIIII",
+        "PPPPPPPPPPPPPPPP",
+        "IIIIIIIIIIIIIIII",
+        "IelIISSIIISSIleI",
         "IIIIIIIIIIIIIIII",
         "PPPPPPPPPPPPPPPP",
         "pppppppppppppppp",
-        "IIIIIIIIIIIIIIII",
+        "1111111111111111",
         "OOOOOOOOOOOOOOOO",
+        "1111111111111111",
+        "1111111111111111",
+        "1111111111111111",
     ])
     # 1: Marble archway pillar
     put_tile(1, 3, [
@@ -805,24 +805,24 @@ def build_tileset_lanka() -> None:
         "pppppppppppppppp",
         "OOOOOOOOOOOOOOOO",
     ])
-    # 3: Sacred lotus crest tile
+    # 3: Recessed cool marble undercroft fill (clean quiet interior below marble terrace)
     put_tile(3, 3, [
-        "HHHHHHHHHHHHHHHH",
-        "IPPPPIIIIIIPPPPI",
-        "IPIIIIHSSHIIIIPI",
-        "IPIIIHSffSHIIIPI",
-        "IPIIlElSSlElIIPI",
-        "IPIIEEEEEEEEIIPI",
-        "IPIIIHSSSSHIIIPI",
-        "IPIIIIIIIIIIIIPI",
-        "IPPPPIIIIIIPPPPI",
-        "IIIIIIIIIIIIIIII",
-        "PPPPPPPPPPPPPPPP",
-        "IIIIIIIIIIIIIIII",
-        "IPIlIIIIIIIlIIPI",
-        "PPPPPPPPPPPPPPPP",
         "pppppppppppppppp",
-        "OOOOOOOOOOOOOOOO",
+        "ppPppppppppppPpp",
+        "pppppppppppppppp",
+        "pppppppppppppppp",
+        "pPppppppppppPppp",
+        "pppppppppppppppp",
+        "pppppppppppppppp",
+        "ppppppPppppppppp",
+        "pppppppppppppppp",
+        "pppppppppppppppp",
+        "pppPpppppppppPpp",
+        "pppppppppppppppp",
+        "pppppppppppppppp",
+        "pppppppppppppppp",
+        "pppppppppppppppp",
+        "pppppppppppppppp",
     ])
     # 4: Ashoka canopy left
     put_tile(4, 3, [

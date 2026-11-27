@@ -5,13 +5,6 @@
 import { type LevelDef, type TileMaterial, type EnemySpawn } from './types';
 import { LEVEL_COLS, LEVEL_ROWS } from './constants';
 
-// Legend:
-// '.' = EMPTY
-// '#' = STONE
-// 'W' = WOOD_ROOF
-// 'B' = BANNER
-// 'S' = SACRED
-
 const TILE_CHAR_MAP: Record<string, TileMaterial> = {
   '.': 'EMPTY',
   '#': 'STONE',
@@ -20,8 +13,10 @@ const TILE_CHAR_MAP: Record<string, TileMaterial> = {
   'S': 'SACRED',
 };
 
-// 160 columns x 14 rows — Clean horizontal Svarna Lanka terraces, 1-tile golden-eaved roofs,
-// hanging banner bridges, and moonlit marble/Ashoka sanctuary (matching ref_gameplay.png).
+// 160 columns x 14 rows — Every STONE (#) and SACRED (S) structure is grounded down to row 13.
+// Every BANNER (B) hangs strictly beneath a roof. Every elevated WOOD_ROOF (W) pavilion is supported
+// at both ends by carved pillars down to a solid terrace below.
+//
 // Zone 1 (0-28):   Palace Parapet Entry
 // Zone 2 (29-60):  Banner Towers
 // Zone 3 (61-95):  Archer Ridge
@@ -35,16 +30,16 @@ const LEVEL_STRINGS: string[] = [
   '................................................................................................................................................................',
   '................................................................................................................................................................',
   '................................................................................................................................................................',
-  '.........................................BBBBBB.........................BBBBBB...................................................BBBBBB.........................',
-  '...................WWWWWW..............##WWWWWW##.....WWWWWW..........##WWWWWW##....WWWWWW.....................................##WWWWWW##.....WWWWWW............',
-  '...................B....B..............B........B.....B....B..........B........B....B....B...........S.........S...............B........B.....B....B............',
-  '...................B....B.....WWWWWW...B........B..###WWWWWW###.......B........B..##WWWWWW##.......SSSSS.....SSSSS.......WWWWWWB........B..###WWWWWW###.........',
-  '...................B....B.....B....B.............###..........#.......#........#..#........#.........S.........S.........B....B#........#..#..........#.........',
-  '...................#....#.....B....B...#........#..#..........#WWWWWWW#........#..#........#WWWWWW...S.........S...WWWWWWB....B#........#..#..........#WWWWWW...',
-  '.........WWWWWWWWWW######.....#....#####.........###...........########........####........#######SSSSSSSSSSSSSSSSS######......#########..############......###.',
-  '#########..........######.....#...................................................................SSSSSSSSSSSSSSSSS..........................................###.',
-  '#########..........###############################################################################SSSSSSSSSSSSSSSSS##########################################.###.',
-  '#########..........###############################################################################SSSSSSSSSSSSSSSSS##########################################.###.',
+  '................................................................................................................................................................',
+  '...................WWWWWW...........................................................WWWWWWWWWWW.................................................................',
+  '....................B..B..............WWWWWWWWWWWW..................WWWWWW...........B.......B.......SSS.......SSS...................WWWWW.......WWWWW..........',
+  '....................B..B......WWWWWW...B........B....................B..B............B.......B......SSSSS.....SSSSS...................B.B.........B.B...........',
+  '....................B..B.......B..B....B........B....................B..B............B.......B........S.........S.....................B.B.........B.B...........',
+  '.......................................B........B.....................................................S.........S...............................................',
+  '.........WWWWWWWWWW######.....######..............##########....##########..........###########....SSSSSSSSSSSSSSSSS....##########WWW#####WWW#########...#######',
+  '#########..........######.....######..............##########....##########..........###########....SSSSSSSSSSSSSSSSS....##########...#####...#########...#######',
+  '#########..........######.....#################################################################....SSSSSSSSSSSSSSSSS....##########...#####...#########...#######',
+  '#########..........######.....#################################################################....SSSSSSSSSSSSSSSSS....##########...#####...#########...#######',
 ];
 
 function parseLevelGrid(): TileMaterial[][] {
@@ -62,23 +57,22 @@ function parseLevelGrid(): TileMaterial[][] {
 }
 
 const ENEMY_SPAWNS: EnemySpawn[] = [
-  // Zone 2: Guards patrolling terraces & towers (feet at ty + 1)
-  { type: 'GUARD', tx: 34, ty: 11, patrolLeftTx: 31, patrolRightTx: 38 },
-  { type: 'GUARD', tx: 54, ty: 6, patrolLeftTx: 51, patrolRightTx: 59 },
+  // Zone 2: Guards patrolling terraces & sunken courtyards
+  { type: 'GUARD', tx: 33, ty: 9, patrolLeftTx: 30, patrolRightTx: 35 },
+  { type: 'GUARD', tx: 44, ty: 11, patrolLeftTx: 39, patrolRightTx: 48 },
+  { type: 'GUARD', tx: 55, ty: 9, patrolLeftTx: 50, patrolRightTx: 59 },
 
-  // Zone 3: Archers & Guard on ridge
-  { type: 'ARCHER', tx: 74, ty: 4, patrolLeftTx: 72, patrolRightTx: 77 },
-  { type: 'GUARD', tx: 66, ty: 11, patrolLeftTx: 62, patrolRightTx: 70 },
-  { type: 'ARCHER', tx: 86, ty: 6, patrolLeftTx: 84, patrolRightTx: 89 },
+  // Zone 3: Archers & Guards along ridge
+  { type: 'ARCHER', tx: 70, ty: 9, patrolLeftTx: 64, patrolRightTx: 72 },
+  { type: 'ARCHER', tx: 76, ty: 11, patrolLeftTx: 74, patrolRightTx: 79 },
+  { type: 'GUARD', tx: 88, ty: 9, patrolLeftTx: 85, patrolRightTx: 93 },
+  { type: 'GUARD', tx: 92, ty: 9, patrolLeftTx: 85, patrolRightTx: 93 },
 
-  // Zone 4: Guard near entrance to Vibhishana's House (standing on row 9 awning)
-  { type: 'GUARD', tx: 94, ty: 8, patrolLeftTx: 92, patrolRightTx: 96 },
-
-  // Zone 5: Gauntlet
-  { type: 'GUARD', tx: 132, ty: 4, patrolLeftTx: 129, patrolRightTx: 136 },
-  { type: 'ARCHER', tx: 147, ty: 6, patrolLeftTx: 144, patrolRightTx: 151 },
-  { type: 'GUARD', tx: 143, ty: 9, patrolLeftTx: 140, patrolRightTx: 148 },
-  { type: 'ARCHER', tx: 157, ty: 9, patrolLeftTx: 156, patrolRightTx: 158 },
+  // Zone 5: Citadel, Bastion & Exit Gauntlet
+  { type: 'GUARD', tx: 125, ty: 9, patrolLeftTx: 121, patrolRightTx: 129 },
+  { type: 'ARCHER', tx: 135, ty: 9, patrolLeftTx: 133, patrolRightTx: 137 },
+  { type: 'GUARD', tx: 145, ty: 9, patrolLeftTx: 141, patrolRightTx: 149 },
+  { type: 'ARCHER', tx: 157, ty: 9, patrolLeftTx: 154, patrolRightTx: 158 },
 ];
 
 export function getLevel1(): LevelDef {
