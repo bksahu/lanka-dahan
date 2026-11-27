@@ -22,22 +22,27 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.aseprite('hanuman', 'assets/hanuman.png', 'assets/hanuman.json');
-    this.load.aseprite('rakshasa_guard', 'assets/rakshasa_guard.png', 'assets/rakshasa_guard.json');
-    this.load.aseprite('rakshasa_archer', 'assets/rakshasa_archer.png', 'assets/rakshasa_archer.json');
-    this.load.aseprite('lanka_tiles', 'assets/lanka_tiles.png', 'assets/lanka_tiles.json');
-    this.load.aseprite('fx_fire', 'assets/fx_fire.png', 'assets/fx_fire.json');
+    this.load.aseprite('hanuman', 'assets/sprites/hanuman.png', 'assets/sprites/hanuman.json');
+    this.load.aseprite('rakshasa_guard', 'assets/sprites/rakshasa_guard.png', 'assets/sprites/rakshasa_guard.json');
+    this.load.aseprite('props_lanka', 'assets/sprites/props_lanka.png', 'assets/sprites/props_lanka.json');
+    this.load.aseprite('fx_fire', 'assets/sprites/fx_fire.png', 'assets/sprites/fx_fire.json');
 
-    this.load.image('bg_sky', 'assets/bg_sky.png');
-    this.load.image('bg_mountains', 'assets/bg_mountains.png');
-    this.load.image('bg_palace_mid', 'assets/bg_palace_mid.png');
+    this.load.spritesheet('tileset_lanka', 'assets/maps/tileset_lanka.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
+
+    this.load.image('bg_title_lanka', 'assets/bg/bg_title_lanka.png');
+    this.load.image('bg_sky', 'assets/bg/bg_sky.png');
+    this.load.image('bg_far_spires', 'assets/bg/bg_far_spires.png');
+    this.load.image('bg_mid_palace', 'assets/bg/bg_mid_palace.png');
   }
 
   create(): void {
     this.registerPrefixedAnims('hanuman', new Set(['idle', 'run', 'jump', 'fall', 'wall_slide']));
-    this.registerPrefixedAnims('rakshasa_guard', new Set(['idle', 'patrol']));
-    this.registerPrefixedAnims('rakshasa_archer', new Set(['idle', 'aim', 'arrow']));
-    this.registerPrefixedAnims('fx_fire', new Set(['flame_loop', 'ember']));
+    this.registerPrefixedAnims('rakshasa_guard', new Set(['idle', 'patrol', 'aim']));
+    this.registerPrefixedAnims('props_lanka', new Set(['brass_diya', 'wall_sconce']));
+    this.registerPrefixedAnims('fx_fire', new Set(['fire_tile_loop', 'ember_spark', 'arrow']));
 
     this.scene.start('TitleScene');
   }

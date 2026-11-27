@@ -15,25 +15,38 @@ import {
 } from '../../core/constants';
 import { getLevel1 } from '../../core/levelData';
 import { LevelSim } from '../../core/levelSim';
-import type { LevelDef, LevelSnapshot, PlayerState, Enemy } from '../../core/types';
+import type { LevelDef, LevelSnapshot, PlayerState, Enemy, TileMaterial } from '../../core/types';
 import { InputAdapter } from '../input/InputAdapter';
 import { RetroSynth } from '../audio/RetroSynth';
+
+interface ActiveParticle {
+  sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Rectangle;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  gravity: number;
+}
+
+const MAX_ACTIVE_PARTICLES = 40;
 
 export class PlayScene extends Phaser.Scene {
   private levelDef!: LevelDef;
   private sim!: LevelSim;
   private accumulator = 0;
 
-  private bgMountains!: Phaser.GameObjects.TileSprite;
-  private bgPalace!: Phaser.GameObjects.TileSprite;
+  private bgFarSpires!: Phaser.GameObjects.TileSprite;
+  private bgMidPalace!: Phaser.GameObjects.TileSprite;
 
   private tileSprites: (Phaser.GameObjects.Image | null)[][] = [];
   private flameOverlays: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private particles: ActiveParticle[] = [];
 
   private playerSprite!: Phaser.GameObjects.Sprite;
   private enemySprites: Map<number, Phaser.GameObjects.Sprite> = new Map();
   private arrowSprites: Map<number, Phaser.GameObjects.Sprite> = new Map();
   private exitBeacon!: Phaser.GameObjects.Text;
+  private fireGlowOverlay!: Phaser.GameObjects.Rectangle;
 
   private prevPlayerState: PlayerState = 'IDLE';
   private endSoundPlayed = false;
@@ -52,52 +65,152 @@ export class PlayScene extends Phaser.Scene {
     this.flameOverlays.clear();
     this.enemySprites.clear();
     this.arrowSprites.clear();
+    this.particles = [];
 
-    // Parallax Backgrounds (scrollFactor 0, tilePositionX driven by camera)
+    // ── Depth 0 / 10 / 20: 3-Layer Parallax Backdrop ──────────────────────────
     this.add.tileSprite(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 'bg_sky')
       .setOrigin(0, 0)
-      .setScrollFactor(0);
-    this.bgMountains = this.add.tileSprite(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 'bg_mountains')
-      .setOrigin(0, 0)
-      .setScrollFactor(0);
-    this.bgPalace = this.add.tileSprite(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 'bg_palace_mid')
-      .setOrigin(0, 0)
-      .setScrollFactor(0);
+      .setScrollFactor(0)
+      .setDepth(0);
 
-    // Build tile visuals
+    this.bgFarSpires = this.add.tileSprite(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 'bg_far_spires')
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(10);
+
+    this.bgMidPalace = this.add.tileSprite(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 'bg_mid_palace')
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(20);
+
+    // ── Depth 30 & 40: Decorative Props, Banners & Playable Tilemap ───────────
+    this.buildDecorativeLandmarks();
     this.buildTileLayer();
 
-    // Exit archway & beacon
-    const exitX = this.levelDef.exitTxMin * TILE_SIZE;
-    const exitY = 10 * TILE_SIZE;
-    this.add.image(exitX, exitY, 'lanka_tiles', 'lanka_tiles 23.aseprite').setOrigin(0, 0);
-    this.add.image(exitX + 16, exitY, 'lanka_tiles', 'lanka_tiles 24.aseprite').setOrigin(0, 0);
-    this.exitBeacon = this.add.text(exitX + 16, exitY - 12, 'EXIT', {
-      fontFamily: 'monospace',
-      fontSize: '7px',
-      color: '#ffd43b',
-      stroke: '#0b0a14',
-      strokeThickness: 2,
-    }).setOrigin(0.5);
-
-    // Hanuman sprite (feet aligned at y=31 of 32x32 frame)
-    this.playerSprite = this.add.sprite(0, 0, 'hanuman');
-    this.playerSprite.setOrigin(0.5, 1);
-    this.playerSprite.play('hanuman:idle');
-
-    // Enemy sprites
+    // ── Depth 50: Enemies ─────────────────────────────────────────────────────
     for (const enemy of this.sim.enemies) {
-      const key = enemy.type === 'GUARD' ? 'rakshasa_guard' : 'rakshasa_archer';
-      const spr = this.add.sprite(enemy.x + 16, enemy.y + 32, key);
-      spr.setOrigin(0.5, 1);
-      spr.play(enemy.type === 'GUARD' ? 'rakshasa_guard:patrol' : 'rakshasa_archer:idle');
+      const spr = this.add.sprite(Math.round(enemy.x + 16), Math.round(enemy.y + 32), 'rakshasa_guard')
+        .setOrigin(0.5, 1)
+        .setDepth(50);
+      if (enemy.type === 'ARCHER') {
+        spr.setTint(0xd8dde8); // slight moonlight tint to distinguish sentry archers
+      }
+      spr.play(enemy.type === 'GUARD' ? 'rakshasa_guard:patrol' : 'rakshasa_guard:idle');
       this.enemySprites.set(enemy.id, spr);
     }
+
+    // ── Depth 60: Lord Hanuman (48x32 frame, feet anchored at y=31) ───────────
+    this.playerSprite = this.add.sprite(0, 0, 'hanuman')
+      .setOrigin(0.5, 1)
+      .setDepth(60);
+    this.playerSprite.play('hanuman:idle');
+
+    // ── Depth 70: Subtle Warm Fire Glow Overlay ───────────────────────────────
+    this.fireGlowOverlay = this.add.rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0xff7a18, 0)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(70);
 
     // Camera setup
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.startFollow(this.playerSprite, true, 0.15, 0.15);
     this.cameras.main.setDeadzone(40, 24);
+  }
+
+  private buildDecorativeLandmarks(): void {
+    // Entry Torana Arch (Zone 1)
+    this.add.image(2 * TILE_SIZE, 12 * TILE_SIZE, 'props_lanka', 'props_lanka 0.aseprite')
+      .setOrigin(0, 1)
+      .setDepth(30);
+
+    // Standing brass diyas along parapets
+    const diyaPositions: [number, number][] = [
+      [8, 12], [29, 6], [62, 5], [91, 4], [124, 6], [154, 11],
+    ];
+    for (const [tx, ty] of diyaPositions) {
+      const diya = this.add.sprite(tx * TILE_SIZE + 8, ty * TILE_SIZE, 'props_lanka')
+        .setOrigin(0.5, 1)
+        .setDepth(30);
+      diya.play('props_lanka:brass_diya');
+    }
+
+    // Vibhishana's White Marble Sacred Shrine (Zone 4: cols 96..110)
+    this.add.image(99 * TILE_SIZE, 8 * TILE_SIZE, 'props_lanka', 'props_lanka 1.aseprite')
+      .setOrigin(0, 1)
+      .setDepth(30);
+
+    // Decorative golden pillars & jali windows on stone towers
+    const pillarCols = [14, 33, 47, 74, 88, 128, 143];
+    for (const tx of pillarCols) {
+      this.add.image(tx * TILE_SIZE, 11 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 3).setOrigin(0, 0).setDepth(30);
+      this.add.image(tx * TILE_SIZE, 10 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 4).setOrigin(0, 0).setDepth(30);
+      this.add.image(tx * TILE_SIZE, 9 * TILE_SIZE, 'tileset_lanka', 4 * 16 + 5).setOrigin(0, 0).setDepth(30);
+    }
+
+    // Sea-Cliff Exit Torana Arch (Zone 5, foreground/midground framing)
+    const exitX = this.levelDef.exitTxMin * TILE_SIZE - 16;
+    const exitY = 12 * TILE_SIZE;
+    this.add.image(exitX, exitY, 'props_lanka', 'props_lanka 0.aseprite')
+      .setOrigin(0, 1)
+      .setDepth(80);
+
+    this.exitBeacon = this.add.text(exitX + 32, exitY - 70, 'EXIT', {
+      fontFamily: 'monospace',
+      fontSize: '7px',
+      color: '#ffd23f',
+      stroke: '#090b17',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(80);
+  }
+
+  private getTileFrameIndex(tx: number, ty: number, mat: TileMaterial): number {
+    const grid = this.levelDef.grid;
+    const left = tx > 0 ? grid[ty][tx - 1] : 'EMPTY';
+    const right = tx < this.levelDef.cols - 1 ? grid[ty][tx + 1] : 'EMPTY';
+    const above = ty > 0 ? grid[ty - 1][tx] : 'EMPTY';
+
+    if (mat === 'STONE') {
+      if (above === 'EMPTY') {
+        if (left === 'EMPTY') return 0;   // left finial
+        if (right === 'EMPTY') return 3;  // right finial
+        return tx % 2 === 0 ? 1 : 2;      // mid cornice A/B
+      }
+      if (above === 'STONE' && ty === 13) return 8; // dark interior base fill
+      if ((tx + ty) % 7 === 0) return 6;  // ornate relief frieze
+      return (tx + ty) % 2 === 0 ? 4 : 5; // carved sandstone brick A/B
+    }
+
+    if (mat === 'WOOD_ROOF') {
+      const posOffset = left !== 'WOOD_ROOF' ? 0 : right !== 'WOOD_ROOF' ? 2 : 1;
+      const cell = this.sim.fireGrid.getCell(tx, ty);
+      let stateOffset = 0;
+      if (cell?.fireState === 'IGNITING') stateOffset = 3;
+      else if (cell?.fireState === 'BURNING') stateOffset = 6;
+      else if (cell?.fireState === 'COLLAPSED') stateOffset = 9;
+      return 1 * 16 + stateOffset + posOffset;
+    }
+
+    if (mat === 'BANNER') {
+      const cell = this.sim.fireGrid.getCell(tx, ty);
+      if (cell?.fireState === 'IGNITING') return 2 * 16 + (tx % 2 === 0 ? 2 : 3);
+      if (cell?.fireState === 'BURNING') return 2 * 16 + (tx % 2 === 0 ? 4 : 5);
+      if (cell?.fireState === 'COLLAPSED') return 2 * 16 + 6;
+      return 2 * 16 + (tx % 2 === 0 ? 0 : 1);
+    }
+
+    if (mat === 'SACRED') {
+      // Top canopy/roof vs pillars & Ashoka foliage
+      if (ty <= 3) {
+        if (left !== 'SACRED') return 3 * 16 + 4;  // Ashoka canopy L
+        if (right !== 'SACRED') return 3 * 16 + 6; // Ashoka canopy R
+        return 3 * 16 + 5;                         // Ashoka canopy M
+      }
+      if (above === 'EMPTY') return 3 * 16 + 0;    // marble lotus roof
+      if (left !== 'SACRED' || right !== 'SACRED') return 3 * 16 + 1; // marble pillar
+      return (tx + ty) % 3 === 0 ? 3 * 16 + 3 : 3 * 16 + 2; // lotus crest / floral plinth
+    }
+
+    return 0;
   }
 
   private buildTileLayer(): void {
@@ -110,28 +223,12 @@ export class PlayScene extends Phaser.Scene {
           rowArr.push(null);
           continue;
         }
-        let frameIdx = 4; // STONE solid
-        if (mat === 'STONE') {
-          const above = ty > 0 ? this.levelDef.grid[ty - 1][tx] : 'EMPTY';
-          if (above === 'EMPTY') frameIdx = 0; // cornice
-          else if ((tx + ty) % 5 === 0) frameIdx = 3; // alcove
-          else if (tx % 4 === 0) frameIdx = 2; // fluted pillar
-          else frameIdx = 1; // carved wall
-        } else if (mat === 'WOOD_ROOF') {
-          frameIdx = 5;
-        } else if (mat === 'BANNER') {
-          frameIdx = tx % 2 === 0 ? 10 : 11;
-        } else if (mat === 'SACRED') {
-          const above = ty > 0 ? this.levelDef.grid[ty - 1][tx] : 'EMPTY';
-          if (above === 'EMPTY') frameIdx = 15; // marble lotus roof
-          else if (tx % 3 === 0) frameIdx = 16; // tulsi pillar
-          else if (tx % 3 === 1) frameIdx = 17; // ashoka canopy
-          else frameIdx = 19; // marble base
-        }
-
+        const frameIdx = this.getTileFrameIndex(tx, ty, mat);
+        const depth = mat === 'BANNER' ? 30 : 40;
         const img = this.add
-          .image(tx * TILE_SIZE, ty * TILE_SIZE, 'lanka_tiles', `lanka_tiles ${frameIdx}.aseprite`)
-          .setOrigin(0, 0);
+          .image(tx * TILE_SIZE, ty * TILE_SIZE, 'tileset_lanka', frameIdx)
+          .setOrigin(0, 0)
+          .setDepth(depth);
         rowArr.push(img);
       }
       this.tileSprites.push(rowArr);
@@ -158,10 +255,54 @@ export class PlayScene extends Phaser.Scene {
       this.events.emit('sim-update', latestSnap);
     }
 
+    this.updateParticles(frameDt);
+
     // Parallax sync
     const camX = this.cameras.main.scrollX;
-    this.bgMountains.tilePositionX = camX * 0.15;
-    this.bgPalace.tilePositionX = camX * 0.35;
+    this.bgFarSpires.tilePositionX = camX * 0.15;
+    this.bgMidPalace.tilePositionX = camX * 0.35;
+
+    // Subtle warm fire glow near dense active fires
+    const fireAlpha = Math.min(0.08, this.flameOverlays.size * 0.004);
+    this.fireGlowOverlay.setAlpha(
+      fireAlpha * (0.85 + 0.15 * Math.sin(this.time.now / 90)),
+    );
+  }
+
+  private spawnEmberBurst(wx: number, wy: number, count: number, debris = false): void {
+    for (let i = 0; i < count; i++) {
+      if (this.particles.length >= MAX_ACTIVE_PARTICLES) {
+        const oldest = this.particles.shift();
+        oldest?.sprite.destroy();
+      }
+      const vx = (Math.random() - 0.5) * 44;
+      const vy = debris ? 15 + Math.random() * 30 : -24 - Math.random() * 34;
+      if (debris) {
+        const rect = this.add.rectangle(Math.round(wx), Math.round(wy), 3, 2, 0x3b2018)
+          .setDepth(70);
+        this.particles.push({ sprite: rect, vx, vy, life: 0, maxLife: 0.45, gravity: 180 });
+      } else {
+        const spr = this.add.sprite(Math.round(wx), Math.round(wy), 'fx_fire')
+          .setDepth(70);
+        spr.play('fx_fire:ember_spark');
+        this.particles.push({ sprite: spr, vx, vy, life: 0, maxLife: 0.55, gravity: -12 });
+      }
+    }
+  }
+
+  private updateParticles(dt: number): void {
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.life += dt;
+      if (p.life >= p.maxLife) {
+        p.sprite.destroy();
+        this.particles.splice(i, 1);
+        continue;
+      }
+      p.vy += p.gravity * dt;
+      p.sprite.x = Math.round(p.sprite.x + p.vx * dt);
+      p.sprite.y = Math.round(p.sprite.y + p.vy * dt);
+    }
   }
 
   private processEvents(snap: LevelSnapshot): void {
@@ -173,6 +314,7 @@ export class PlayScene extends Phaser.Scene {
           const tx = ev.tx as number;
           const ty = ev.ty as number;
           this.updateTileVisual(tx, ty);
+          this.spawnEmberBurst(tx * TILE_SIZE + 8, ty * TILE_SIZE + 6, 4, false);
           synth?.playIgnite();
           break;
         }
@@ -188,6 +330,7 @@ export class PlayScene extends Phaser.Scene {
           const ty = ev.ty as number;
           this.updateTileVisual(tx, ty);
           this.removeFlameOverlay(tx, ty);
+          this.spawnEmberBurst(tx * TILE_SIZE + 8, ty * TILE_SIZE + 8, 4, true);
           this.cameras.main.shake(90, 0.004);
           synth?.playCollapse();
           break;
@@ -196,11 +339,11 @@ export class PlayScene extends Phaser.Scene {
           synth?.playSacredStruck();
           this.cameras.main.shake(120, 0.006);
           const shield = this.add.sprite(
-            snap.player.x + PLAYER_WIDTH / 2 + snap.player.facing * 14,
-            snap.player.y + PLAYER_HEIGHT / 2,
+            Math.round(snap.player.x + PLAYER_WIDTH / 2 + snap.player.facing * 14),
+            Math.round(snap.player.y + PLAYER_HEIGHT / 2),
             'fx_fire',
-          );
-          shield.play('fx_fire:sacred_shield');
+          ).setDepth(70);
+          shield.play('fx_fire:sacred_warn');
           shield.once('animationcomplete', () => shield.destroy());
           break;
         }
@@ -243,30 +386,16 @@ export class PlayScene extends Phaser.Scene {
     const cell = this.sim.fireGrid.getCell(tx, ty);
     if (!img || !cell) return;
 
-    let frameIdx = -1;
-    if (cell.material === 'WOOD_ROOF') {
-      if (cell.fireState === 'IGNITING') frameIdx = 6;
-      else if (cell.fireState === 'BURNING') frameIdx = 7;
-      else if (cell.fireState === 'COLLAPSED') frameIdx = 9;
-    } else if (cell.material === 'BANNER') {
-      if (cell.fireState === 'IGNITING') frameIdx = 12;
-      else if (cell.fireState === 'BURNING') frameIdx = 13;
-      else if (cell.fireState === 'COLLAPSED') {
-        img.setVisible(false);
-        return;
-      }
-    }
-
-    if (frameIdx >= 0) {
-      img.setFrame(`lanka_tiles ${frameIdx}.aseprite`);
-    }
+    const frameIdx = this.getTileFrameIndex(tx, ty, cell.material);
+    img.setFrame(frameIdx);
   }
 
   private spawnFlameOverlay(tx: number, ty: number): void {
     const key = `${tx},${ty}`;
     if (this.flameOverlays.has(key)) return;
-    const spr = this.add.sprite(tx * TILE_SIZE + 8, ty * TILE_SIZE + 8, 'fx_fire');
-    spr.play('fx_fire:flame_loop');
+    const spr = this.add.sprite(tx * TILE_SIZE + 8, ty * TILE_SIZE + 4, 'fx_fire')
+      .setDepth(70);
+    spr.play('fx_fire:fire_tile_loop');
     this.flameOverlays.set(key, spr);
   }
 
@@ -283,7 +412,7 @@ export class PlayScene extends Phaser.Scene {
     const p = snap.player;
     const synth = this.registry.get('synth') as RetroSynth | undefined;
 
-    // Player position (feet at bottom-center of collision box)
+    // Player position (pixel-snapped, feet at bottom-center of collision box)
     this.playerSprite.setPosition(
       Math.round(p.x + PLAYER_WIDTH / 2),
       Math.round(p.y + PLAYER_HEIGHT),
@@ -297,21 +426,15 @@ export class PlayScene extends Phaser.Scene {
       this.playerSprite.setAlpha(1);
     }
 
-    // Player state transition SFX & animations
+    // Player state transition SFX & ember trails
     if (p.state !== this.prevPlayerState) {
       if (p.state === 'JUMP') {
         synth?.playJump();
+        this.spawnEmberBurst(p.x + PLAYER_WIDTH / 2 - p.facing * 8, p.y + 12, 3, false);
       } else if (p.state === 'TAIL_WHIP') {
         synth?.playWhipStart();
         this.cameras.main.shake(60, 0.003);
-        const slash = this.add.sprite(
-          p.x + PLAYER_WIDTH / 2 + p.facing * 16,
-          p.y + PLAYER_HEIGHT / 2,
-          'fx_fire',
-        );
-        slash.setFlipX(p.facing === -1);
-        slash.play('fx_fire:whip_slash');
-        slash.once('animationcomplete', () => slash.destroy());
+        this.spawnEmberBurst(p.x + PLAYER_WIDTH / 2 + p.facing * 14, p.y + 12, 5, false);
       }
       this.prevPlayerState = p.state;
     }
@@ -352,13 +475,14 @@ export class PlayScene extends Phaser.Scene {
       activeArrowIds.add(arrow.id);
       let spr = this.arrowSprites.get(arrow.id);
       if (!spr) {
-        spr = this.add.sprite(arrow.x, arrow.y, 'rakshasa_archer');
-        spr.play('rakshasa_archer:arrow');
+        spr = this.add.sprite(Math.round(arrow.x), Math.round(arrow.y), 'fx_fire')
+          .setDepth(50);
+        spr.play('fx_fire:arrow');
         this.arrowSprites.set(arrow.id, spr);
       }
       spr.setPosition(Math.round(arrow.x), Math.round(arrow.y));
       spr.setFlipX(arrow.vx < 0);
-      spr.setTint(arrow.friendly ? 0xfffbe0 : 0xffffff);
+      spr.setTint(arrow.friendly ? 0xfff9d6 : 0xffffff);
     }
     for (const [id, spr] of this.arrowSprites.entries()) {
       if (!activeArrowIds.has(id)) {
@@ -369,19 +493,17 @@ export class PlayScene extends Phaser.Scene {
 
     // Exit beacon color
     this.exitBeacon.setColor(
-      snap.burnProgress.percent >= WIN_BURN_PERCENT ? '#ffd43b' : '#75618a',
+      snap.burnProgress.percent >= WIN_BURN_PERCENT ? '#ffd23f' : '#a9c4dc',
     );
   }
 
   private getEnemyAnim(enemy: Enemy): string {
-    const prefix = enemy.type === 'GUARD' ? 'rakshasa_guard' : 'rakshasa_archer';
-    if (enemy.state === 'HURT') return `${prefix}:hurt`;
+    if (enemy.state === 'HURT') return 'rakshasa_guard:knockback';
     if (enemy.type === 'GUARD') {
-      if (enemy.state === 'ATTACK') return `${prefix}:attack`;
-      return enemy.state === 'PATROL' ? `${prefix}:patrol` : `${prefix}:idle`;
-    } else {
-      if (enemy.state === 'ATTACK') return `${prefix}:aim`;
-      return `${prefix}:idle`;
+      if (enemy.state === 'ATTACK') return 'rakshasa_guard:shoot';
+      return enemy.state === 'PATROL' ? 'rakshasa_guard:patrol' : 'rakshasa_guard:idle';
     }
+    if (enemy.state === 'ATTACK') return 'rakshasa_guard:aim';
+    return 'rakshasa_guard:idle';
   }
 }

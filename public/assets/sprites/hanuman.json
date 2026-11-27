@@ -4,7 +4,7 @@
       "frame": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -12,20 +12,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 150
+      "duration": 167
     },
     "hanuman 1.aseprite": {
       "frame": {
-        "x": 32,
+        "x": 48,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -33,20 +33,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 150
+      "duration": 167
     },
     "hanuman 2.aseprite": {
       "frame": {
-        "x": 64,
+        "x": 96,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -54,20 +54,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 150
+      "duration": 167
     },
     "hanuman 3.aseprite": {
       "frame": {
-        "x": 96,
+        "x": 144,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -75,20 +75,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 150
+      "duration": 167
     },
     "hanuman 4.aseprite": {
       "frame": {
-        "x": 128,
+        "x": 192,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -96,20 +96,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 80
+      "duration": 83
     },
     "hanuman 5.aseprite": {
       "frame": {
-        "x": 160,
+        "x": 240,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -117,20 +117,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 80
+      "duration": 83
     },
     "hanuman 6.aseprite": {
       "frame": {
-        "x": 192,
+        "x": 288,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -138,20 +138,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 80
+      "duration": 83
     },
     "hanuman 7.aseprite": {
       "frame": {
-        "x": 224,
+        "x": 336,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -159,20 +159,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 80
+      "duration": 83
     },
     "hanuman 8.aseprite": {
       "frame": {
-        "x": 256,
+        "x": 384,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -180,20 +180,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 80
+      "duration": 83
     },
     "hanuman 9.aseprite": {
       "frame": {
-        "x": 288,
+        "x": 432,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -201,20 +201,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 80
+      "duration": 83
     },
     "hanuman 10.aseprite": {
       "frame": {
-        "x": 320,
+        "x": 480,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -222,20 +222,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "duration": 100
     },
     "hanuman 11.aseprite": {
       "frame": {
-        "x": 352,
+        "x": 528,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -243,20 +243,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "duration": 100
     },
     "hanuman 12.aseprite": {
       "frame": {
-        "x": 384,
+        "x": 576,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -264,20 +264,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "duration": 100
     },
     "hanuman 13.aseprite": {
       "frame": {
-        "x": 416,
+        "x": 624,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -285,20 +285,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "duration": 100
     },
     "hanuman 14.aseprite": {
       "frame": {
-        "x": 448,
+        "x": 672,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -306,20 +306,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 120
+      "duration": 125
     },
     "hanuman 15.aseprite": {
       "frame": {
-        "x": 480,
+        "x": 720,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -327,20 +327,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 120
+      "duration": 125
     },
     "hanuman 16.aseprite": {
       "frame": {
-        "x": 512,
+        "x": 768,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -348,20 +348,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "duration": 60
     },
     "hanuman 17.aseprite": {
       "frame": {
-        "x": 544,
+        "x": 816,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -369,20 +369,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "duration": 60
     },
     "hanuman 18.aseprite": {
       "frame": {
-        "x": 576,
+        "x": 864,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -390,20 +390,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "duration": 60
     },
     "hanuman 19.aseprite": {
       "frame": {
-        "x": 608,
+        "x": 912,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -411,20 +411,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "duration": 60
     },
     "hanuman 20.aseprite": {
       "frame": {
-        "x": 640,
+        "x": 960,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -432,20 +432,20 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 150
+      "duration": 100
     },
     "hanuman 21.aseprite": {
       "frame": {
-        "x": 672,
+        "x": 1008,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "rotated": false,
@@ -453,23 +453,23 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 32,
+        "w": 48,
         "h": 32
       },
       "sourceSize": {
-        "w": 32,
+        "w": 48,
         "h": 32
       },
-      "duration": 150
+      "duration": 100
     }
   },
   "meta": {
-    "app": "build-art.py",
+    "app": "revamp_art.py",
     "version": "1.0",
     "image": "hanuman.png",
     "format": "RGBA8888",
     "size": {
-      "w": 704,
+      "w": 1056,
       "h": 32
     },
     "scale": "1",

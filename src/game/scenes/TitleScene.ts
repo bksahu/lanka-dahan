@@ -1,14 +1,13 @@
-// src/game/scenes/TitleScene.ts — Title screen with parallax Svarna Lanka backdrop
+// src/game/scenes/TitleScene.ts — Title screen showcasing Svarna Lanka vista
 
 import Phaser from 'phaser';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../core/constants';
+import { CANVAS_WIDTH } from '../../core/constants';
 import { InputAdapter } from '../input/InputAdapter';
 import { RetroSynth } from '../audio/RetroSynth';
 
 export class TitleScene extends Phaser.Scene {
-  private bgMountains!: Phaser.GameObjects.TileSprite;
-  private bgPalace!: Phaser.GameObjects.TileSprite;
   private startPrompt!: Phaser.GameObjects.Text;
+  private moonGlow!: Phaser.GameObjects.Arc;
   private started = false;
 
   constructor() {
@@ -18,50 +17,61 @@ export class TitleScene extends Phaser.Scene {
   create(): void {
     this.started = false;
 
-    this.add.image(0, 0, 'bg_sky').setOrigin(0, 0);
-    this.bgMountains = this.add.tileSprite(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 'bg_mountains').setOrigin(0, 0);
-    this.bgPalace = this.add.tileSprite(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 'bg_palace_mid').setOrigin(0, 0);
+    // 320x180 Svarna Lanka Trikuta Mountain vista
+    this.add.image(0, 0, 'bg_title_lanka').setOrigin(0, 0);
 
-    // Animated Hanuman preview
-    const hanuman = this.add.sprite(CANVAS_WIDTH / 2, 118, 'hanuman');
-    hanuman.play('hanuman:idle');
+    // Subtle moon shimmer halo near top-right full moon
+    this.moonGlow = this.add.circle(265, 30, 18, 0xf2f6fc, 0.08);
 
-    this.add.text(CANVAS_WIDTH / 2, 30, 'LANKA DAHAN', {
+    // Animated brass diyas flanking the prompt
+    const leftDiya = this.add.sprite(56, 156, 'props_lanka').setOrigin(0.5, 1);
+    leftDiya.play('props_lanka:brass_diya');
+    const rightDiya = this.add.sprite(264, 156, 'props_lanka').setOrigin(0.5, 1);
+    rightDiya.play('props_lanka:brass_diya');
+
+    // Title placed in clean upper-left sky negative space
+    this.add.text(12, 12, 'LANKA DAHAN', {
       fontFamily: 'monospace',
-      fontSize: '20px',
-      color: '#f0b83d',
-      stroke: '#0b0a14',
+      fontSize: '18px',
+      color: '#f2b63d',
+      stroke: '#090b17',
       strokeThickness: 4,
-    }).setOrigin(0.5);
+    });
 
-    this.add.text(CANVAS_WIDTH / 2, 48, 'SUNDARA KANDA', {
-      fontFamily: 'monospace',
-      fontSize: '9px',
-      color: '#ff7a1a',
-      stroke: '#0b0a14',
-      strokeThickness: 2,
-    }).setOrigin(0.5);
-
-    this.add.text(CANVAS_WIDTH / 2, 70, 'Ignite 60% of Svarna Lanka. Spare Sacred Zones.', {
-      fontFamily: 'monospace',
-      fontSize: '7px',
-      color: '#d7e6f0',
-      stroke: '#0b0a14',
-      strokeThickness: 2,
-    }).setOrigin(0.5);
-
-    this.startPrompt = this.add.text(CANVAS_WIDTH / 2, 150, 'PRESS SPACE / TAP TO BEGIN', {
+    this.add.text(13, 32, 'SUNDARA KANDA', {
       fontFamily: 'monospace',
       fontSize: '8px',
-      color: '#fff1a8',
-      stroke: '#0b0a14',
+      color: '#ff7a18',
+      stroke: '#090b17',
+      strokeThickness: 2,
+    });
+
+    this.add.text(13, 44, 'Ignite 60% of Lanka. Spare Sacred Zones.', {
+      fontFamily: 'monospace',
+      fontSize: '6px',
+      color: '#d8dde8',
+      stroke: '#090b17',
+      strokeThickness: 2,
+    });
+
+    // Prompt pill at bottom center
+    this.add.rectangle(CANVAS_WIDTH / 2, 152, 176, 16, 0x090b17, 0.78)
+      .setStrokeStyle(1, 0xc78028);
+
+    this.startPrompt = this.add.text(CANVAS_WIDTH / 2, 152, 'PLAY / TAP TO BEGIN', {
+      fontFamily: 'monospace',
+      fontSize: '8px',
+      color: '#ffe680',
+      stroke: '#090b17',
       strokeThickness: 2,
     }).setOrigin(0.5);
 
-    this.add.text(CANVAS_WIDTH / 2, 168, 'ARROWS/WASD: Move  SPACE: Jump  J/X/SHIFT: Tail Whip', {
+    this.add.text(CANVAS_WIDTH / 2, 170, 'ARROWS/WASD: Move   SPACE: Jump   J/X/SHIFT: Tail Whip', {
       fontFamily: 'monospace',
       fontSize: '6px',
-      color: '#75618a',
+      color: '#a9c4dc',
+      stroke: '#090b17',
+      strokeThickness: 2,
     }).setOrigin(0.5);
 
     const startGame = () => {
@@ -85,10 +95,9 @@ export class TitleScene extends Phaser.Scene {
     this.input.on('pointerdown', startGame);
   }
 
-  update(_time: number, delta: number): void {
-    const dt = delta / 1000;
-    this.bgMountains.tilePositionX += 6 * dt;
-    this.bgPalace.tilePositionX += 14 * dt;
-    this.startPrompt.setAlpha(0.5 + 0.5 * Math.sin(this.time.now / 250));
+  update(): void {
+    const pulse = 0.55 + 0.45 * Math.sin(this.time.now / 260);
+    this.startPrompt.setAlpha(pulse);
+    this.moonGlow.setAlpha(0.05 + 0.05 * Math.sin(this.time.now / 700));
   }
 }

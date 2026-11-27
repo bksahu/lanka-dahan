@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "art": "python3 scripts/build-art.py && python3 scripts/verify-art.py"
+    "art": "python3 scripts/revamp_art.py && python3 scripts/verify_revamp.py"
   },
   "devDependencies": {
     "typescript": "^5.6.0",
