@@ -1511,14 +1511,14 @@ HANUMAN_LEG_STAMPS: dict[str, tuple[int, int, tuple[str, ...]]] = {
 
 HANUMAN_TAIL_SPLINES: dict[str, tuple[tuple[int, int], ...]] = {
     "up": ((19, 22), (17, 21), (15, 19), (14, 16), (14, 13), (15, 10), (16, 8)),
-    "up2": ((19, 22), (16, 21), (14, 19), (13, 16), (14, 12), (15, 9), (17, 7)),
-    "stream": ((19, 22), (16, 21), (14, 20), (11, 18), (9, 16), (8, 14)),
-    "stream2": ((19, 22), (16, 22), (13, 21), (10, 19), (8, 17), (7, 15)),
+    "up2": ((19, 22), (17, 21), (15, 19), (14, 16), (14, 12), (15, 9), (17, 7)),
+    "stream": ((19, 22), (16, 21), (13, 20), (10, 18), (8, 15)),
+    "stream2": ((19, 22), (16, 21), (13, 20), (10, 18), (7, 16)),
     "jump": ((19, 22), (17, 21), (14, 19), (12, 16), (11, 13), (12, 10)),
     "coil": ((19, 22), (16, 23), (14, 21), (13, 18), (14, 15), (15, 13)),
     "whip1": ((25, 22), (29, 21), (33, 19), (37, 16), (41, 14)),
-    "whip2": ((25, 22), (30, 22), (35, 21), (39, 20), (43, 18)),
-    "recover": ((19, 22), (17, 20), (16, 17), (16, 14), (17, 11), (18, 8)),
+    "whip2": ((25, 22), (29, 22), (34, 21), (39, 19), (42, 18)),
+    "recover": ((25, 22), (27, 22), (30, 21), (32, 19)),
 }
 
 
@@ -1732,13 +1732,13 @@ HANUMAN_POSES: list[tuple[str, int, dict]] = [
     ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 1, "grounded": True}),
     ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up", "flame_phase": 2, "grounded": True}),
     ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 0, "grounded": True}),
-    # run (6f @ 12 FPS — locked anchor, cycling legs/arms/jet smoothly)
+    # run (6f @ 12 FPS — locked anchor, smooth leg/arm/flame cycle)
     ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_a", "leg_pose": "run1", "tail_pose": "stream", "flame_phase": 0, "grounded": True}),
-    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_c", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 1, "grounded": True}),
-    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_b", "leg_pose": "run3", "tail_pose": "stream", "flame_phase": 2, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_a", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 1, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_c", "leg_pose": "run3", "tail_pose": "stream", "flame_phase": 2, "grounded": True}),
     ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_b", "leg_pose": "run4", "tail_pose": "stream2", "flame_phase": 0, "grounded": True}),
-    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_c", "leg_pose": "run3", "tail_pose": "stream", "flame_phase": 1, "grounded": True}),
-    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_a", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 2, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_b", "leg_pose": "run3", "tail_pose": "stream", "flame_phase": 1, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run_c", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 2, "grounded": True}),
     # jump (2f @ 10 FPS)
     ("jump", 100, {"bx_off": 0, "by_off": -1, "arm_pose": "jump", "leg_pose": "jump", "tail_pose": "stream", "flame_phase": 0, "grounded": False}),
     ("jump", 100, {"bx_off": 0, "by_off": -1, "arm_pose": "jump", "leg_pose": "jump", "tail_pose": "stream2", "flame_phase": 1, "grounded": False}),
@@ -1752,7 +1752,7 @@ HANUMAN_POSES: list[tuple[str, int, dict]] = [
     ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "coil", "flame_phase": 0, "grounded": True}),
     ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "whip1", "flame_phase": 1, "whip_arc": 1, "grounded": True}),
     ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "whip2", "flame_phase": 0, "whip_arc": 2, "grounded": True}),
-    ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "recover", "flame_phase": 2, "grounded": True}),
+    ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "recover", "flame_phase": 2, "grounded": True}),
     # hurt (2f @ 100ms)
     ("hurt", 100, {"bx_off": -1, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "coil", "flame_phase": 0, "hurt_flash": True, "grounded": True}),
     ("hurt", 100, {"bx_off": -1, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 1, "hurt_flash": False, "grounded": True}),

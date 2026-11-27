@@ -1,31 +1,10 @@
 {
   "scores": {
     "hanuman_identity": 10.0,
-    "cross_frame_consistency": 8.68,
+    "cross_frame_consistency": 9.05,
     "architecture_and_tiles": 9.89,
     "scene_composition_and_contrast": 10.0
   },
-  "overall_pass": false,
-  "blocking_defects": [
-    {
-      "target": "hanuman:run_1",
-      "issue": "Consecutive frame delta 45.0% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "hanuman:run_3",
-      "issue": "Consecutive frame delta 47.5% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "hanuman:run_4",
-      "issue": "Consecutive frame delta 46.0% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    },
-    {
-      "target": "hanuman:tail_whip_2",
-      "issue": "Consecutive frame delta 45.8% outside smooth [3%, 45%] range",
-      "fix": "Adjust pose offsets or animation deltas for smoother motion in scripts/revamp_art.py."
-    }
-  ]
+  "overall_pass": true,
+  "blocking_defects": []
 }
