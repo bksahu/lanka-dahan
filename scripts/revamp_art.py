@@ -13,8 +13,10 @@ from PIL import Image
 
 from palette import (
     CHAR_MAP,
+    LEGEND_CHAR_MAP,
     MASTER_RGB,
     grid_to_image,
+    legend_grid_to_image,
     quantize_to_palette,
     save_aseprite_sheet,
 )
@@ -1364,8 +1366,278 @@ def build_props_lanka() -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 4. LORD HANUMAN (48×32 frames, body centered ~x=24, feet at y=31)
+# 4. LORD HANUMAN — SYMBOL-GRID MODULAR RIG (48×32 frames, body centered ~x=24)
 # ═══════════════════════════════════════════════════════════════════════════════
+# Legend:
+#   '.' transparent   'K' ink outline (#090B17)
+#   'H'/'L'/'G'/'g'   Svarna gold highlight -> shadow
+#   'S'/'s'/'d'       warm skin/sandstone highlight -> deep shadow
+#   'R'/'r'/'c'       crimson dhoti bright -> fold shadow
+#   'B'               royal blue sash (#2457A6)
+#   'M'               sacred yajnopavita white marble highlight (#FFFFFF)
+#   'F'/'O'/'Y'/'W'   fire ramp (#D92B1C -> #FF7A18 -> #FFD23F -> #FFF9D6)
+
+HANUMAN_HEAD_MUKUTA: tuple[str, ...] = (
+    "....H....",  # conical mukuta tip
+    "...HLH...",  # upper gold spire
+    "..gGLGg..",  # mid mukuta tier
+    "..LHLHL..",  # golden diadem headband
+    ".rSSSSs..",  # crimson tilak + brow ridge
+    ".sSSKSSs.",  # dark eye + projecting Vanara snout
+    ".gSSSSsd.",  # cheek/jaw + kundala stud
+    ".Lsssss..",  # dangling gold kundala earring + jaw
+    "..ssSss..",  # sturdy neck anchoring into torso traps
+)
+
+HANUMAN_TORSO_DHOTI: tuple[str, ...] = (
+    "..ssSSss..",  # traps/upper neck overlap
+    ".SSMSSssS.",  # broad muscular chest + sacred white thread (M)
+    ".SSsMSSsS.",  # defined pecs + diagonal yajnopavita
+    "..SsSMss..",  # athletic tapered torso
+    "..sSSsMs..",  # core abs
+    ".LBBBBBBBL",  # royal blue sash (#2457A6) + gold belt trim
+    ".BBBBBBBBB",  # solid royal blue waist band
+    ".RRrRRRRr.",  # saffron-crimson dhoti wrap
+    "RrcR..rRr.",  # dhoti pleats overlapping thighs cleanly
+)
+
+# Shoulder-anchored arm matrices: (offset_x_from_cx, offset_y_from_torso_top, rows)
+HANUMAN_ARM_STAMPS: dict[str, tuple[tuple[int, int, tuple[str, ...]], tuple[int, int, tuple[str, ...]]]] = {
+    "idle": (
+        (-6, 1, ("sS", "LG", "SS")),
+        (4, 1, ("Ss", "GL", "SS")),
+    ),
+    "run1": (
+        (-6, 1, ("SS.", "LGs", "SS.")),
+        (4, 0, ("Ss.", "SGL", ".SS")),
+    ),
+    "run2": (
+        (-6, 0, (".SS", "sGL", "SS.")),
+        (4, 1, ("SS.", "LGS", ".sS")),
+    ),
+    "jump": (
+        (-6, 1, ("SS.", "LG.")),
+        (4, -2, (".LS", "SGS", "SS.")),
+    ),
+    "fall": (
+        (-6, 0, ("LS.", "SSs")),
+        (4, -1, (".SL", "GSS")),
+    ),
+    "wall": (
+        (-6, 2, ("sS", "LG", "SS")),
+        (4, -1, ("SS.", "SGL", "SS.")),
+    ),
+    "whip": (
+        (-6, 1, ("sS", "LG")),
+        (4, 0, ("SSG", "SsL")),
+    ),
+}
+
+# Hip-anchored compact muscular leg matrices: (offset_x_from_cx, offset_y_from_torso_top, rows)
+HANUMAN_LEG_STAMPS: dict[str, tuple[int, int, tuple[str, ...]]] = {
+    "idle": (-4, 8, (
+        "SSS..SSS",
+        "SSS..SSS",
+        "SSs..sSS",
+        "ssS..Sss",
+        "sLL..LLs",
+        "SSs..sSS",
+        "SSs..sSS",
+        "SSSs.sSSS",
+    )),
+    "run1": (-5, 8, (
+        ".SSS..SSS.",
+        ".SSS..SSS.",
+        ".SSs..sSS.",
+        "SSs....sSS",
+        "LLs....sLL",
+        "SS......SS",
+        "SSs....sSS",
+        "SSSs..sSSS",
+    )),
+    "run2": (-4, 8, (
+        "SSS..SSS",
+        "SSS..SSS",
+        "SSs..sSS",
+        ".ssSSss.",
+        ".LL..LL.",
+        ".SS..SS.",
+        "SSs..sSS",
+        "SSs..sSS",
+    )),
+    "jump": (-5, 8, (
+        "SSSS.SSSS.",
+        "SSS...sSSS",
+        "SSs....sLL",
+        "LLs.....SS",
+        "SS......ss",
+        "sSS.......",
+        "SS........",
+    )),
+    "fall": (-4, 8, (
+        "SSS..SSS",
+        "SSS..SSS",
+        "SSs..sSS",
+        "LLs..sLL",
+        "SSs..sSS",
+        "SSs..sSS",
+        "SSs..sSS",
+    )),
+}
+
+HANUMAN_TAIL_SPLINES: dict[str, tuple[tuple[int, int], ...]] = {
+    "up": ((19, 22), (17, 21), (15, 19), (14, 16), (14, 13), (15, 10), (16, 8)),
+    "up2": ((19, 22), (16, 21), (14, 19), (13, 16), (14, 12), (15, 9), (17, 7)),
+    "stream": ((19, 22), (16, 21), (14, 20), (11, 18), (9, 16), (8, 14)),
+    "stream2": ((19, 22), (16, 22), (13, 21), (10, 19), (8, 17), (7, 15)),
+    "jump": ((19, 22), (17, 21), (14, 19), (12, 16), (11, 13), (12, 10)),
+    "coil": ((19, 22), (16, 23), (14, 21), (13, 18), (14, 15), (15, 13)),
+    "whip1": ((25, 22), (29, 21), (33, 19), (37, 16), (41, 14)),
+    "whip2": ((25, 22), (30, 22), (35, 21), (39, 20), (43, 18)),
+    "recover": ((19, 22), (17, 20), (16, 17), (16, 14), (17, 11), (18, 8)),
+}
+
+
+def stamp_legend(canvas: list[list[str]], rows: tuple[str, ...] | list[str], ox: int, oy: int) -> None:
+    stamp(canvas, list(rows), ox, oy)
+
+
+def draw_connected_tail(
+    canvas: list[list[str]],
+    pts: tuple[tuple[int, int], ...],
+    dx: int,
+    dy: int,
+) -> tuple[int, int]:
+    """Draw a 4-connected furred-gold tail curve so BFS never breaks along diagonals."""
+    h, w = len(canvas), len(canvas[0])
+    ordered: list[tuple[int, int]] = []
+    for i in range(len(pts) - 1):
+        x0, y0 = pts[i][0] + dx, pts[i][1] + dy
+        x1, y1 = pts[i + 1][0] + dx, pts[i + 1][1] + dy
+        cx, cy = x0, y0
+        ordered.append((cx, cy))
+        while cx != x1 or cy != y1:
+            if cx != x1:
+                cx += 1 if x1 > cx else -1
+                ordered.append((cx, cy))
+            if cy != y1:
+                cy += 1 if y1 > cy else -1
+                ordered.append((cx, cy))
+
+    n = max(1, len(ordered))
+    for idx, (x, y) in enumerate(ordered):
+        if 0 <= x < w and 0 <= y < h:
+            col = "d" if idx < n // 3 else ("s" if idx < (2 * n) // 3 else "G")
+            canvas[y][x] = col
+            if y + 1 < h and idx < n - 1:
+                canvas[y + 1][x] = "d" if idx < n // 2 else "g"
+    return ordered[-1]
+
+
+def stamp_flame_plume(
+    canvas: list[list[str]],
+    tip_x: int,
+    tip_y: int,
+    tail_pose: str,
+    flame_phase: int,
+) -> None:
+    """Attach a 4-connected multi-layer F->O->Y->W flame jet anchored directly to tail tip."""
+    if tail_pose in ("stream", "stream2", "jump"):
+        plumes = [
+            (
+                "...FOY..",
+                "..FOYWY.",
+                ".FOYWWYO",
+                "FOYYWWYO",
+                ".FOYWWF.",
+                "..FFO...",
+            ),
+            (
+                "..FOY...",
+                ".FOYWWY.",
+                "FOYYWWYO",
+                ".FOYYWYO",
+                "..FFOYF.",
+                "...FO...",
+            ),
+            (
+                "...OYY..",
+                "..FOYWYO",
+                "FFOYWWYO",
+                ".FOYWWYF",
+                "..FOYYF.",
+                "...FF...",
+            ),
+        ]
+        px = max(1, tip_x - 6)
+        py = max(1, tip_y - 2)
+        stamp_legend(canvas, plumes[flame_phase % 3], px, py)
+    elif tail_pose in ("whip1", "whip2"):
+        whip_plumes = [
+            (
+                "..FOYW",
+                ".FOYYW",
+                "FOYYWF",
+                "OYYFF.",
+                ".FF...",
+            ),
+            (
+                "..OYYW",
+                ".FOYWW",
+                "FOYYWO",
+                "FFYYF.",
+                ".FO...",
+            ),
+        ]
+        px = min(41, tip_x - 1)
+        py = max(2, tip_y - 2)
+        stamp_legend(canvas, whip_plumes[flame_phase % 2], px, py)
+    else:
+        torches = [
+            (
+                "..W..",
+                ".OYO.",
+                "FOYWO",
+                "FOYYF",
+                ".FOF.",
+            ),
+            (
+                ".YW..",
+                ".OYO.",
+                "FOYWF",
+                ".OYYO",
+                ".FOF.",
+            ),
+            (
+                "..WY.",
+                ".OYF.",
+                "FOYWO",
+                "FOYYF",
+                ".FO..",
+            ),
+        ]
+        px = max(1, tip_x - 2)
+        py = max(1, tip_y - 3)
+        stamp_legend(canvas, torches[flame_phase % 3], px, py)
+
+
+def enforce_ground_lock(canvas: list[list[str]], bottom_y: int = 30) -> None:
+    """Shift content vertically down if grounded frame sits high, keeping head/feet clean."""
+    h, w = len(canvas), len(canvas[0])
+    max_y = -1
+    for y in range(h):
+        for x in range(w):
+            if canvas[y][x] != ".":
+                max_y = y
+    if 0 <= max_y < bottom_y:
+        shift = bottom_y - max_y
+        if shift > 0:
+            new_c = blank_grid(w, h, ".")
+            for y in range(h - shift):
+                new_c[y + shift] = canvas[y][:]
+            for y in range(h):
+                canvas[y] = new_c[y]
+
 
 def build_hanuman_frame(
     bx_off: int = 0,
@@ -1376,274 +1648,106 @@ def build_hanuman_frame(
     flame_phase: int = 0,
     whip_arc: int = 0,
     hurt_flash: bool = False,
+    grounded: bool = True,
 ) -> Image.Image:
     g = blank_grid(48, 32, ".")
     cx = 24 + bx_off
-    # Stocky heroic vanara proportions (~24px tall):
-    # Head (y=8..15), Muscular Torso+Dhoti (y=16..24), Strong compact legs (y=25..31, 7px tall)
-    by = 8 + by_off
+    torso_top = 15 + by_off
+    head_top = 7 + by_off
 
-    # 1. Blazing Tail & roaring flame jet (matching ref_gameplay.png)
-    tail_curves = {
-        "up": [(20, 22), (17, 21), (15, 19), (14, 16), (14, 13), (15, 10), (17, 8)],
-        "up2": [(20, 22), (17, 21), (14, 18), (13, 15), (14, 12), (16, 9), (18, 7)],
-        "stream": [(20, 22), (17, 21), (14, 20), (11, 18), (9, 16), (8, 14), (7, 12)],
-        "stream2": [(20, 22), (17, 22), (14, 21), (11, 19), (8, 17), (7, 15), (6, 13)],
-        "jump": [(20, 22), (18, 21), (15, 19), (13, 16), (12, 13), (13, 10), (15, 8)],
-        "coil": [(20, 22), (17, 23), (14, 22), (13, 19), (13, 16), (14, 14), (16, 12)],
-        "whip1": [(25, 22), (29, 21), (33, 19), (37, 16), (40, 14), (43, 12), (45, 11)],
-        "whip2": [(25, 22), (30, 22), (34, 21), (38, 20), (41, 19), (44, 18), (46, 17)],
-        "recover": [(21, 22), (18, 20), (16, 17), (16, 14), (17, 11), (18, 9), (19, 7)],
-    }
-    pts = tail_curves[tail_pose]
-    for i, (tx, ty) in enumerate(pts):
-        x, y = tx + bx_off, ty + by_off
-        if 0 <= x < 48 and 0 <= y < 32:
-            g[y][x] = "I" if i >= 4 and i % 2 == 0 else ("g" if i >= 4 else "a")
-            if y + 1 < 32:
-                g[y + 1][x] = "w" if i < 4 else "I"
+    # 1. Connected blazing tail spline + multi-layer flame plume behind body
+    tip_x, tip_y = draw_connected_tail(g, HANUMAN_TAIL_SPLINES[tail_pose], bx_off, by_off)
+    stamp_flame_plume(g, tip_x, tip_y, tail_pose, flame_phase)
 
-    # Flame plume at tail tip
-    fx, fy = pts[-1][0] + bx_off, pts[-1][1] + by_off
-    if tail_pose in ("stream", "stream2", "jump"):
-        plumes = [
-            [
-                "......RfY...",
-                "....RFYfYf..",
-                "..RRFFffYYf.",
-                "CRFFffffYYf.",
-                ".RRFFffYYf..",
-                "...CRFYRR...",
-            ],
-            [
-                ".....FRY....",
-                "...RFfYfR...",
-                ".CRFFffffY..",
-                "RRFFFfffYYf.",
-                "..CRYYfYFR..",
-                "....CRFR....",
-            ],
-            [
-                "......fRY...",
-                "...RCFYfYf..",
-                ".RRFFffYYfR.",
-                "CRFFFfffYYf.",
-                "..RFYYfYFR..",
-                "....RFYR....",
-            ],
-        ]
-        stamp(g, plumes[flame_phase % 3], max(0, fx - 10), max(0, fy - 3))
-    elif tail_pose in ("whip1", "whip2"):
-        plumes = [
-            ["RFYf", "fYYf", "RFYR"],
-            ["CFfY", "YffY", "CRFR"],
-        ]
-        stamp(g, plumes[flame_phase % 2], min(44, fx - 1), fy - 1)
-    else:
-        plumes = [
-            ["..f..", ".FYf.", "RFfYR", ".CYR."],
-            [".f...", "CYfR.", "FfYf.", ".FYR."],
-            ["..f..", ".YfF.", "CFfYR", ".RYC."],
-        ]
-        stamp(g, plumes[flame_phase % 3], fx - 2, max(0, fy - 3))
+    # 2. Back arm (behind torso)
+    back_arm, front_arm = HANUMAN_ARM_STAMPS[arm_pose]
+    stamp_legend(g, back_arm[2], cx + back_arm[0], torso_top + back_arm[1])
 
-    # 2. Head & Conical Golden Mukuta Crown (8 rows, y = by..by+7)
-    head = [
-        "...S....",
-        "..SBS...",
-        ".gBGBg..",
-        ".BSBSB..",
-        "CAaaaA..",  # brow & crimson headband
-        ".AAfOAO.",  # vanara snout + bright eye
-        "..AAAA..",
-        "B.aaAa..",  # kundala earring & jaw
-    ]
-    stamp(g, head, cx - 3, by)
+    # 3. Muscular articulated legs overlapping dhoti hem cleanly
+    leg_ox, leg_oy, leg_rows = HANUMAN_LEG_STAMPS[leg_pose]
+    stamp_legend(g, leg_rows, cx + leg_ox, torso_top + leg_oy)
 
-    # 3. Broad Muscular Chest, Yajnopavita, Royal Blue Sash & Crimson-Saffron Dhoti (9 rows, y = by+8..by+16)
-    torso = [
-        ".AAAaa..",
-        "AAAIAAa.",  # broad chest + white sacred thread
-        "AAAaIAa.",
-        ".AAaIA..",
-        ".AAAaA..",
-        ".bBBBBb.",  # royal blue sash (#2457A6) + gold belt
-        "bFFFFFFb",  # saffron-crimson dhoti wrap
-        "FcCCCCcF",
-        "FcC..CcF",
-    ]
-    stamp(g, torso, cx - 3, by + 8)
+    # 4. Frozen identity TORSO_DHOTI & HEAD_MUKUTA stamped verbatim (zero drift)
+    stamp_legend(g, HANUMAN_TORSO_DHOTI, cx - 5, torso_top)
+    stamp_legend(g, HANUMAN_HEAD_MUKUTA, cx - 4, head_top)
 
-    # 4. Muscular Arms with golden armlets/wristlets
-    if arm_pose == "idle":
-        stamp(g, ["AB", "aB", "AA"], cx - 5, by + 9)
-        stamp(g, ["BA", "Ba", "AA"], cx + 4, by + 9)
-    elif arm_pose == "run1":
-        stamp(g, ["AA", "Ba", ".a"], cx - 6, by + 9)
-        stamp(g, [".A", "AB", "AA"], cx + 4, by + 8)
-    elif arm_pose == "run2":
-        stamp(g, [".A", "Ba", "AA"], cx + 4, by + 9)
-        stamp(g, ["AA", "AB", ".a"], cx - 6, by + 8)
-    elif arm_pose == "jump":
-        stamp(g, ["AA", "Ba"], cx - 5, by + 7)
-        stamp(g, ["AB", "AA"], cx + 4, by + 6)
-    elif arm_pose == "wall":
-        stamp(g, ["AA", "Ba", "AA"], cx + 4, by + 7)
-        stamp(g, ["AB", "a."], cx - 5, by + 10)
-    elif arm_pose == "whip":
-        stamp(g, ["AB", "a."], cx - 5, by + 9)
-        stamp(g, ["AAB", ".AA"], cx + 4, by + 9)
+    # 5. Front arm anchored to shoulder socket (placed cleanly clear of head/face)
+    stamp_legend(g, front_arm[2], cx + front_arm[0], torso_top + front_arm[1])
 
-    # 5. Compact Muscular Vanara Legs (only 7 rows: y = by+17..by+23 = 25..31!)
-    ly = by + 17  # 25 + by_off
-    if leg_pose == "idle":
-        # Wide athletic warrior stance, thick thighs/calves, golden anklets, feet at y=31
-        legs = [
-            "AAa..aAA",
-            "AAa..aAA",
-            "AaA..AaA",
-            "AB....BA",
-            "AA....AA",
-            "AAa..aAA",
-        ]
-        stamp(g, legs, cx - 3, ly)
-        g[30][cx - 3] = "A"; g[31][cx - 3] = "A"; g[31][cx - 2] = "A"; g[31][cx - 1] = "a"
-        g[30][cx + 2] = "A"; g[31][cx + 2] = "A"; g[31][cx + 3] = "A"; g[31][cx + 4] = "a"
-    elif leg_pose == "run1":
-        # Athletic forward stride (compact, bent knees)
-        legs = [
-            "aAA..AAa",
-            "AA....AA",
-            "B......B",
-            "AA....AA",
-            "AAA..AAA",
-        ]
-        stamp(g, legs, cx - 4, ly)
-        g[30][cx - 4] = "A"; g[31][cx - 4] = "A"; g[31][cx - 3] = "a"
-        g[30][cx + 2] = "A"; g[31][cx + 2] = "A"; g[31][cx + 3] = "a"
-    elif leg_pose == "run2":
-        # Passing stride
-        legs = [
-            ".AAaaAA.",
-            ".AA..AA.",
-            ".AB..BA.",
-            ".AA..AA.",
-            "AAa..aAA",
-        ]
-        stamp(g, legs, cx - 3, ly)
-        g[30][cx - 2] = "A"; g[31][cx - 2] = "A"; g[31][cx - 1] = "a"
-        g[30][cx + 1] = "A"; g[31][cx + 1] = "A"; g[31][cx + 2] = "a"
-    elif leg_pose == "jump":
-        # Iconic ref_gameplay.png leap: front knee tucked up, back leg trailing cleanly
-        legs = [
-            "aA..AAAA",
-            "AA...ABA",
-            "B.....AA",
-            "AA......",
-        ]
-        stamp(g, legs, cx - 4, ly - 1)
-    elif leg_pose == "fall":
-        legs = [
-            "AAa..aAA",
-            "AB....BA",
-            "AA....AA",
-            "AAa..aAA",
-        ]
-        stamp(g, legs, cx - 3, ly)
-
-    # 6. Sweeping Whip Fire Arc across 24x14 active hitbox zone
+    # 6. Tail-whip active arc connected solidly from whip tip across hitbox reach
     if whip_arc == 1:
-        arc = [
-            ".....ffYYFF",
-            "...ffYYYYFF",
-            ".ffYYYYFFRR",
-            "ffYYYFFRR..",
-            "fYYFFRR....",
-        ]
-        stamp(g, arc, 33, 11)
+        stamp_legend(g, (
+            ".FOYYWW",
+            "FOYYWWY",
+            ".FOYFF.",
+        ), min(40, tip_x - 1), max(2, tip_y - 2))
     elif whip_arc == 2:
-        arc = [
-            "....ffYYFFCC",
-            "..ffYYYYFFRR",
-            "ffYYYYFFRR..",
-            "ffYYFFRR....",
-            "..ffFFRR....",
-            "....CC......",
-        ]
-        stamp(g, arc, 34, 15)
+        stamp_legend(g, (
+            "FOYYWWW",
+            "FOYYWWO",
+            ".FFOYYF",
+        ), min(40, tip_x - 1), max(2, tip_y - 1))
 
+    # 7. Hurt recoil flash sparks around torso/waist while preserving head crown & blue/crimson invariants
     if hurt_flash:
-        for y in range(32):
-            for x in range(48):
-                if g[y][x] in ("A", "a", "B", "F"):
-                    g[y][x] = "f"
+        stamp_legend(g, ("WY", "FO"), cx - 7, torso_top + 2)
+        stamp_legend(g, ("YW", "OF"), cx + 5, torso_top + 2)
 
-    g = apply_ink_outline(g, "O", skip={"f", "Y"})
-    return grid_to_image(g)
+    if grounded:
+        enforce_ground_lock(g, bottom_y=30)
+
+    # 8. Strict global 4-neighbor 1px INK (#090B17) outline pass (lands grounded feet on y=31!)
+    g = apply_ink_outline(g, ink="K")
+    return legend_grid_to_image(g)
+
+
+# Animation Pose Offset Tables (no blind polygon overrides!)
+HANUMAN_POSES: list[tuple[str, int, dict]] = [
+    # idle (4f @ 6 FPS)
+    ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up", "flame_phase": 0, "grounded": True}),
+    ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 1, "grounded": True}),
+    ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up", "flame_phase": 2, "grounded": True}),
+    ("idle", 167, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 0, "grounded": True}),
+    # run (6f @ 12 FPS)
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run1", "leg_pose": "run1", "tail_pose": "stream", "flame_phase": 0, "grounded": True}),
+    ("run", 83, {"bx_off": 1, "by_off": -1, "arm_pose": "run2", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 1, "grounded": False}),
+    ("run", 83, {"bx_off": 1, "by_off": 0, "arm_pose": "run1", "leg_pose": "run1", "tail_pose": "stream", "flame_phase": 2, "grounded": True}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run2", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 0, "grounded": True}),
+    ("run", 83, {"bx_off": 1, "by_off": -1, "arm_pose": "run1", "leg_pose": "run1", "tail_pose": "stream", "flame_phase": 1, "grounded": False}),
+    ("run", 83, {"bx_off": 0, "by_off": 0, "arm_pose": "run2", "leg_pose": "run2", "tail_pose": "stream2", "flame_phase": 2, "grounded": True}),
+    # jump (2f @ 10 FPS)
+    ("jump", 100, {"bx_off": 0, "by_off": -1, "arm_pose": "jump", "leg_pose": "jump", "tail_pose": "stream", "flame_phase": 0, "grounded": False}),
+    ("jump", 100, {"bx_off": 0, "by_off": -1, "arm_pose": "jump", "leg_pose": "jump", "tail_pose": "stream2", "flame_phase": 1, "grounded": False}),
+    # fall (2f @ 10 FPS)
+    ("fall", 100, {"bx_off": 0, "by_off": 0, "arm_pose": "fall", "leg_pose": "fall", "tail_pose": "jump", "flame_phase": 0, "grounded": False}),
+    ("fall", 100, {"bx_off": 0, "by_off": 0, "arm_pose": "fall", "leg_pose": "fall", "tail_pose": "up2", "flame_phase": 1, "grounded": False}),
+    # wall_slide (2f @ 8 FPS)
+    ("wall_slide", 125, {"bx_off": 1, "by_off": 0, "arm_pose": "wall", "leg_pose": "fall", "tail_pose": "up", "flame_phase": 0, "grounded": False}),
+    ("wall_slide", 125, {"bx_off": 1, "by_off": 0, "arm_pose": "wall", "leg_pose": "fall", "tail_pose": "up2", "flame_phase": 1, "grounded": False}),
+    # tail_whip (4f @ 60ms)
+    ("tail_whip", 60, {"bx_off": -2, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "coil", "flame_phase": 0, "grounded": True}),
+    ("tail_whip", 60, {"bx_off": 1, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "whip1", "flame_phase": 1, "whip_arc": 1, "grounded": True}),
+    ("tail_whip", 60, {"bx_off": 2, "by_off": 0, "arm_pose": "whip", "leg_pose": "idle", "tail_pose": "whip2", "flame_phase": 0, "whip_arc": 2, "grounded": True}),
+    ("tail_whip", 60, {"bx_off": 0, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "recover", "flame_phase": 2, "grounded": True}),
+    # hurt (2f @ 100ms)
+    ("hurt", 100, {"bx_off": -1, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "coil", "flame_phase": 0, "hurt_flash": True, "grounded": True}),
+    ("hurt", 100, {"bx_off": -2, "by_off": 0, "arm_pose": "idle", "leg_pose": "idle", "tail_pose": "up2", "flame_phase": 1, "hurt_flash": False, "grounded": True}),
+]
 
 
 def build_hanuman() -> None:
     frames: list[tuple[Image.Image, int]] = []
+    tags: list[tuple[str, int, int]] = []
+    cur_tag = HANUMAN_POSES[0][0]
+    start_idx = 0
+    for idx, (tag, dur, kwargs) in enumerate(HANUMAN_POSES):
+        frames.append((build_hanuman_frame(**kwargs), dur))
+        if tag != cur_tag:
+            tags.append((cur_tag, start_idx, idx - 1))
+            cur_tag = tag
+            start_idx = idx
+    tags.append((cur_tag, start_idx, len(HANUMAN_POSES) - 1))
 
-    # idle (4f @ 6 FPS = 167ms)
-    for i in range(4):
-        dy = 1 if i in (1, 2) else 0
-        frames.append((
-            build_hanuman_frame(by_off=dy, tail_pose="up" if i % 2 == 0 else "up2", flame_phase=i),
-            167,
-        ))
-
-    # run (6f @ 12 FPS = 83ms)
-    for i in range(6):
-        dy = -1 if i in (1, 4) else 0
-        dx = 1 if i in (2, 3) else 0
-        arm = "run1" if i % 2 == 0 else "run2"
-        leg = "run1" if i % 2 == 0 else "run2"
-        frames.append((
-            build_hanuman_frame(bx_off=dx, by_off=dy, arm_pose=arm, leg_pose=leg, tail_pose="stream" if i % 2 == 0 else "stream2", flame_phase=i),
-            83,
-        ))
-
-    # jump (2f @ 10 FPS = 100ms)
-    for i in range(2):
-        frames.append((
-            build_hanuman_frame(by_off=-2, arm_pose="jump", leg_pose="jump", tail_pose="stream", flame_phase=i),
-            100,
-        ))
-
-    # fall (2f @ 10 FPS = 100ms)
-    for i in range(2):
-        frames.append((
-            build_hanuman_frame(by_off=-1, arm_pose="jump", leg_pose="fall", tail_pose="jump", flame_phase=i),
-            100,
-        ))
-
-    # wall_slide (2f @ 8 FPS = 125ms)
-    for i in range(2):
-        frames.append((
-            build_hanuman_frame(bx_off=1, by_off=0, arm_pose="wall", leg_pose="fall", tail_pose="up" if i == 0 else "up2", flame_phase=i),
-            125,
-        ))
-
-    # tail_whip (4f @ 16 FPS = 60ms each = 0.24s)
-    frames.append((build_hanuman_frame(bx_off=-2, arm_pose="whip", leg_pose="idle", tail_pose="coil", flame_phase=0), 60))
-    frames.append((build_hanuman_frame(bx_off=1, arm_pose="whip", leg_pose="idle", tail_pose="whip1", flame_phase=1, whip_arc=1), 60))
-    frames.append((build_hanuman_frame(bx_off=2, arm_pose="whip", leg_pose="idle", tail_pose="whip2", flame_phase=0, whip_arc=2), 60))
-    frames.append((build_hanuman_frame(bx_off=0, arm_pose="idle", leg_pose="idle", tail_pose="recover", flame_phase=2), 60))
-
-    # hurt (2f @ 10 FPS = 100ms)
-    frames.append((build_hanuman_frame(bx_off=-1, arm_pose="idle", leg_pose="idle", tail_pose="coil", flame_phase=0, hurt_flash=True), 100))
-    frames.append((build_hanuman_frame(bx_off=-2, arm_pose="idle", leg_pose="idle", tail_pose="up2", flame_phase=1, hurt_flash=False), 100))
-
-    tags = [
-        ("idle", 0, 3),
-        ("run", 4, 9),
-        ("jump", 10, 11),
-        ("fall", 12, 13),
-        ("wall_slide", 14, 15),
-        ("tail_whip", 16, 19),
-        ("hurt", 20, 21),
-    ]
     save_aseprite_sheet(
         "hanuman",
         frames,
@@ -1654,128 +1758,148 @@ def build_hanuman() -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 5. RAKSHASA GUARD (32×32 frames)
+# 5. RAKSHASA GUARD — SYMBOL-GRID MODULAR RIG (32×32 frames)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def build_guard_frame(pose: str = "idle", phase: int = 0) -> Image.Image:
+RAKSHASA_HEAD: tuple[str, ...] = (
+    ".H....H.",  # gold horn tips
+    ".Lg..gL.",  # gold horn bases
+    ".3GGGG3.",  # bronze-gold helm ridge
+    "23333332",  # indigo armored brow
+    "32YY32YY",  # glowing fire-gold predator eyes
+    ".3M33M3.",  # white fangs
+    ".233332.",  # firm chin connecting to cuirass
+)
+
+RAKSHASA_TORSO: tuple[str, ...] = (
+    "GL2332LG",  # gold/bronze shoulder pauldrons
+    "gG3333Gg",  # bronze trim collar
+    "r233332r",  # crimson chest harness
+    "rR3223Rr",  # crimson armor plate
+    ".GLLLLG.",  # golden war belt
+    ".rRRRRr.",  # crimson kilt
+    ".rcRRcr.",  # kilt pleats overlapping thighs cleanly
+)
+
+RAKSHASA_LEG_STAMPS: dict[str, tuple[str, ...]] = {
+    "idle": (
+        "332..233",
+        "332..233",
+        "33....33",
+        "gL....Lg",
+        "23....32",
+        "23....32",
+        "332..233",
+        "233..332",
+        "23....32",
+        "23....32",
+        "33....33",
+        "233..332",
+    ),
+    "stride": (
+        "332..233",
+        "332..233",
+        "3......3",
+        "gL....Lg",
+        "23....32",
+        "23....32",
+        "33....33",
+        "23....32",
+        "23....32",
+        "33....33",
+        "23....32",
+        "233..332",
+    ),
+}
+
+RAKSHASA_POSES: list[tuple[str, int, str, int, int, int]] = [
+    # (tag, duration_ms, leg_key, dx, dy, phase)
+    ("idle", 200, "idle", 0, 0, 0),
+    ("idle", 200, "idle", 0, 1, 1),
+    ("patrol", 120, "idle", 0, 0, 0),
+    ("patrol", 120, "stride", 1, 0, 1),
+    ("patrol", 120, "idle", 1, 0, 2),
+    ("patrol", 120, "stride", 0, 0, 3),
+    ("aim", 140, "idle", 0, 0, 0),
+    ("aim", 140, "idle", 0, 0, 1),
+    ("shoot", 100, "idle", 0, 0, 0),
+    ("shoot", 100, "idle", 0, 0, 1),
+    ("knockback", 140, "idle", -1, 0, 0),
+    ("knockback", 140, "stride", -1, 0, 1),
+]
+
+
+def build_guard_frame(pose: str = "idle", phase: int = 0, leg_key: str = "idle", dx: int = 0, dy: int = 0) -> Image.Image:
     g = blank_grid(32, 32, ".")
-    dx = 1 if (pose == "patrol" and phase in (1, 2)) else (-1 if pose == "knockback" else 0)
-    dy = 1 if (pose == "idle" and phase == 1) or (pose == "patrol" and phase % 2 == 1) else 0
-    ox = 10 + dx
+    ox = 11 + dx
     oy = 5 + dy
 
-    # Horned bronze/indigo crown & armored face
-    head = [
-        ".S....S.",
-        ".gB..Bg.",
-        ".3GGGG3.",
-        "23333332",
-        "32YY32YY",  # glowing amber eyes
-        ".3M33M3.",  # fangs
-        ".233332.",
-    ]
-    stamp(g, head, ox + 1, oy)
+    # 1. Articulated legs reaching y=30 (ink outline lands on y=31!)
+    stamp_legend(g, RAKSHASA_LEG_STAMPS[leg_key], ox, oy + 14)
 
-    # Dark bronze/indigo armor + crimson cape & loincloth
-    torso = [
-        "GB2332BG",
-        "gG3333Gg",
-        "c233332c",
-        "cC3223Cc",
-        ".GBBBBG.",
-        ".cCCCCc.",
-        ".cCrrcC.",
-    ]
-    stamp(g, torso, ox + 1, oy + 7)
+    # 2. Frozen identity RAKSHASA_TORSO & RAKSHASA_HEAD
+    stamp_legend(g, RAKSHASA_TORSO, ox, oy + 7)
+    stamp_legend(g, RAKSHASA_HEAD, ox, oy)
 
-    # Golden war bow & spear
+    # 3. 4-connected weapon (spear or war bow attached to shoulder/hand at ox+8)
     if pose == "aim":
-        # Drawn golden bow + blazing arrow (phase 0: half draw, phase 1: full draw + flame flare)
-        bow_x = ox + 9 if phase == 0 else ox + 10
-        bow = ["..B.", ".gB.", "gB..", "gB..", ".gB.", "..B."]
-        stamp(g, bow, bow_x, oy + 5)
-        draw_start = ox + 6 if phase == 0 else ox + 4
-        for ax in range(draw_start, bow_x + 6):
+        bx = ox + 8 if phase == 0 else ox + 9
+        stamp_legend(g, (
+            ".L.",
+            "gL.",
+            "gL.",
+            "gL.",
+            ".L.",
+        ), bx, oy + 6)
+        # Arrow connected across bow hand
+        for ax in range(ox + 6, min(31, bx + 5)):
             g[oy + 8][ax] = "W"
-        if phase == 1:
-            g[oy + 7][bow_x + 5] = "F"
-            g[oy + 9][bow_x + 5] = "F"
-            g[oy + 8][bow_x + 5] = "Y"
-            g[oy + 8][bow_x + 6] = "f"
-            g[oy + 7][bow_x + 1] = "I"
-            g[oy + 9][bow_x + 1] = "I"
-        else:
-            g[oy + 8][bow_x + 5] = "Y"
+        if phase == 1 and bx + 5 < 31:
+            g[oy + 7][bx + 4] = "O"
+            g[oy + 9][bx + 4] = "O"
+            g[oy + 8][bx + 4] = "Y"
     elif pose == "shoot":
-        bow = ["..B.", ".gB.", "gB..", "gB..", ".gB.", "..B."]
-        stamp(g, bow, ox + 10 - phase, oy + 5)
-        g[oy + 8][ox + 12] = "S"
+        bx = ox + 9 - phase
+        stamp_legend(g, (".L.", "gL.", "gL.", "gL.", ".L."), bx, oy + 6)
+        g[oy + 8][min(30, bx + 3)] = "H"
     else:
-        # Held golden spear/bow
-        for i in range(20):
-            sx = ox + 11 - i // 3
-            sy = max(1, oy - 2 + i)
-            if 0 <= sx < 32 and 0 <= sy < 32:
-                g[sy][sx] = "S" if i <= 2 else ("B" if i <= 4 else "g")
-
-    # Legs reaching y=31
-    if pose == "patrol" and phase in (1, 3):
-        legs = [
-            "23....32",
-            "3......3",
-            "gG....Gg",
-            "23....32",
-            "33....33",
-            "233..332",
-        ]
-        stamp(g, legs, ox + 1, oy + 14)
-        g[31][ox + 1] = "2"; g[31][ox + 2] = "3"
-        g[31][ox + 7] = "3"; g[31][ox + 8] = "2"
-    else:
-        legs = [
-            ".23..32.",
-            ".33..33.",
-            ".gG..Gg.",
-            ".23..32.",
-            ".23..32.",
-            "233..332",
-        ]
-        stamp(g, legs, ox + 1, oy + 14)
-        g[31][ox + 2] = "2"; g[31][ox + 3] = "3"
-        g[31][ox + 6] = "3"; g[31][ox + 7] = "2"
+        # Held golden spear braced right from shoulder/waist at ox+8 up & down 4-connected
+        sx = ox + 8
+        for sy in range(max(2, oy - 1), min(30, oy + 20)):
+            if sy <= oy + 1:
+                g[sy][sx + 1] = "H"
+                g[sy][sx] = "L"
+            elif sy <= oy + 3:
+                g[sy][sx] = "L"
+            else:
+                g[sy][sx] = "g"
+        # Connect hand at shoulder level (oy + 8)
+        g[oy + 8][ox + 7] = "L"
 
     if pose == "knockback" and phase == 0:
-        for y in range(32):
-            for x in range(32):
-                if g[y][x] in ("2", "3", "G"):
-                    g[y][x] = "S"
+        # Subtle bright spark flash on armor shoulder without erasing identity
+        stamp_legend(g, ("WY", "OY"), ox - 2, oy + 8)
 
-    g = apply_ink_outline(g, "O")
-    return grid_to_image(g)
+    if pose in ("idle", "patrol"):
+        enforce_ground_lock(g, bottom_y=30)
+
+    g = apply_ink_outline(g, ink="K")
+    return legend_grid_to_image(g)
 
 
 def build_rakshasa_guard() -> None:
-    frames = [
-        (build_guard_frame("idle", 0), 200),
-        (build_guard_frame("idle", 1), 200),
-        (build_guard_frame("patrol", 0), 120),
-        (build_guard_frame("patrol", 1), 120),
-        (build_guard_frame("patrol", 2), 120),
-        (build_guard_frame("patrol", 3), 120),
-        (build_guard_frame("aim", 0), 140),
-        (build_guard_frame("aim", 1), 140),
-        (build_guard_frame("shoot", 0), 100),
-        (build_guard_frame("shoot", 1), 100),
-        (build_guard_frame("knockback", 0), 140),
-        (build_guard_frame("knockback", 1), 140),
-    ]
-    tags = [
-        ("idle", 0, 1),
-        ("patrol", 2, 5),
-        ("aim", 6, 7),
-        ("shoot", 8, 9),
-        ("knockback", 10, 11),
-    ]
+    frames: list[tuple[Image.Image, int]] = []
+    tags: list[tuple[str, int, int]] = []
+    cur_tag = RAKSHASA_POSES[0][0]
+    start_idx = 0
+    for idx, (tag, dur, leg_key, dx, dy, phase) in enumerate(RAKSHASA_POSES):
+        frames.append((build_guard_frame(pose=tag, phase=phase, leg_key=leg_key, dx=dx, dy=dy), dur))
+        if tag != cur_tag:
+            tags.append((cur_tag, start_idx, idx - 1))
+            cur_tag = tag
+            start_idx = idx
+    tags.append((cur_tag, start_idx, len(RAKSHASA_POSES) - 1))
+
     save_aseprite_sheet(
         "rakshasa_guard",
         frames,

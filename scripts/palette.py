@@ -111,6 +111,85 @@ CHAR_MAP: dict[str, tuple[int, int, int, int]] = {
     "b": (*MASTER_RGB["SASH_BLUE"], 255),
 }
 
+# Phase 1 Symbolic Rig Legend (explicit 1:1 mapping for character matrices & ASCII inspection)
+LEGEND_CHAR_MAP: dict[str, tuple[int, int, int, int]] = {
+    ".": (0, 0, 0, 0),
+    # Ink & Night Sky / Armor Indigo
+    "K": (*MASTER_RGB["INK"], 255),
+    "1": (*MASTER_RGB["SKY_DEEP"], 255),
+    "2": (*MASTER_RGB["SKY_MID"], 255),
+    "3": (*MASTER_RGB["SKY_HIGH"], 255),
+    "4": (*MASTER_RGB["SKY_HAZE"], 255),
+    # Ocean & Moon
+    "u": (*MASTER_RGB["OCEAN_DEEP"], 255),
+    "U": (*MASTER_RGB["OCEAN_MID"], 255),
+    "v": (*MASTER_RGB["OCEAN_LIGHT"], 255),
+    "V": (*MASTER_RGB["MOON_MIST"], 255),
+    "Z": (*MASTER_RGB["MOON_PURE"], 255),
+    # Svarna Gold ramp
+    "k": (*MASTER_RGB["GOLD_DARK"], 255),
+    "g": (*MASTER_RGB["GOLD_SHADOW"], 255),
+    "G": (*MASTER_RGB["GOLD_MID"], 255),
+    "L": (*MASTER_RGB["GOLD_BRIGHT"], 255),
+    "H": (*MASTER_RGB["GOLD_SPEC"], 255),
+    # Sandstone / Warm Skin ramp
+    "t": (*MASTER_RGB["TIMBER_DARK"], 255),
+    "d": (*MASTER_RGB["TIMBER_MID"], 255),
+    "s": (*MASTER_RGB["SAND_MID"], 255),
+    "S": (*MASTER_RGB["SAND_LIGHT"], 255),
+    # Crimson Dhoti & Banners
+    "c": (*MASTER_RGB["CRIMSON_DARK"], 255),
+    "r": (*MASTER_RGB["CRIMSON_MID"], 255),
+    "R": (*MASTER_RGB["CRIMSON_BRIGHT"], 255),
+    # Royal Blue Sash
+    "B": (*MASTER_RGB["SASH_BLUE"], 255),
+    # Fire Ramp
+    "F": (*MASTER_RGB["FIRE_RED"], 255),
+    "O": (*MASTER_RGB["FIRE_ORANGE"], 255),
+    "Y": (*MASTER_RGB["FIRE_GOLD"], 255),
+    "W": (*MASTER_RGB["FIRE_CORE"], 255),
+    # Sacred Marble
+    "p": (*MASTER_RGB["MARBLE_DARK"], 255),
+    "m": (*MASTER_RGB["MARBLE_MID"], 255),
+    "P": (*MASTER_RGB["MARBLE_LIGHT"], 255),
+    "M": (*MASTER_RGB["MARBLE_PURE"], 255),
+    # Ashoka Emerald
+    "a": (*MASTER_RGB["ASHOKA_DARK"], 255),
+    "e": (*MASTER_RGB["ASHOKA_MID"], 255),
+    "E": (*MASTER_RGB["ASHOKA_LIGHT"], 255),
+}
+
+RGB_TO_LEGEND: dict[tuple[int, int, int], str] = {
+    rgba[:3]: sym for sym, rgba in LEGEND_CHAR_MAP.items() if rgba[3] > 0
+}
+
+
+def legend_grid_to_image(grid: list[list[str]]) -> Image.Image:
+    h = len(grid)
+    w = len(grid[0])
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            px[x, y] = LEGEND_CHAR_MAP[grid[y][x]]
+    return img
+
+
+def image_to_legend_lines(img: Image.Image) -> list[str]:
+    rgba = img.convert("RGBA")
+    px = rgba.load()
+    lines: list[str] = []
+    for y in range(rgba.height):
+        row_chars = []
+        for x in range(rgba.width):
+            r, g, b, a = px[x, y]
+            if a < 128:
+                row_chars.append(".")
+            else:
+                row_chars.append(RGB_TO_LEGEND.get((r, g, b), "?"))
+        lines.append("".join(row_chars))
+    return lines
+
 
 def nearest_palette_rgb(r: int, g: int, b: int) -> tuple[int, int, int]:
     best = MASTER_RGB_LIST[0]
